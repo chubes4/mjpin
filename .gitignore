@@ -1,0 +1,11 @@
+# Ignore node_modules
+node_modules/
+
+# Ignore environment and config files
+.env
+
+# Ignore all hidden files (dotfiles)
+.*
+
+# Allow .gitignore itself
+!.gitignore 
