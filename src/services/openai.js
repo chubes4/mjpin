@@ -12,6 +12,7 @@ try {
 const OPENAI_API_KEY = process.env.MJPIN_OPENAI_API_KEY;
 const OPENAI_MODEL = process.env.MJPIN_OPENAI_MODEL || 'gpt-3.5-turbo';
 
+// Note: Discord requires a reply within 15 seconds. For long generations, use deferred replies.
 async function generatePrompt(input) {
   if (!OPENAI_API_KEY) {
     throw new Error('OpenAI API key not set in environment.');
@@ -24,7 +25,6 @@ async function generatePrompt(input) {
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: input }
     ],
-    max_tokens: 200,
     temperature: 0.8
   };
 
@@ -33,7 +33,7 @@ async function generatePrompt(input) {
       headers: {
         'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
-      },
+      }
     });
     const result = response.data.choices && response.data.choices[0]?.message?.content;
     if (result) {

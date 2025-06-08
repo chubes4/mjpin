@@ -13,10 +13,21 @@ const data = new SlashCommandBuilder()
 async function execute(interaction) {
   const input = interaction.options.getString('input');
   try {
+    await interaction.deferReply(); // Acknowledge immediately
     const result = await generatePrompt(input);
-    await interaction.reply(result);
+    const MAX_DISCORD_MESSAGE_LENGTH = 2000;
+    const safeResult = result.length > MAX_DISCORD_MESSAGE_LENGTH
+      ? result.slice(0, MAX_DISCORD_MESSAGE_LENGTH - 3) + '...'
+      : result;
+    await interaction.editReply(safeResult);
+    return; // Prevent further code from running
   } catch (err) {
-    await interaction.reply(`Error: ${err.message}`);
+    try {
+      await interaction.editReply(`Error: ${err.message}`);
+    } catch (e) {
+      // If editReply fails (e.g., already replied), log the error
+      console.error('Failed to edit reply:', e);
+    }
   }
 }
 

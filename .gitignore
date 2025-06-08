@@ -4,6 +4,8 @@ node_modules/
 # Ignore environment and config files
 .env
 system_prompt.txt
+boards.json
+pinterest_tokens.json
 
 # Ignore all hidden files (dotfiles)
 .*

@@ -9,19 +9,30 @@ const data = new SlashCommandBuilder()
     option.setName('board')
       .setDescription('Pinterest board slug (e.g., paper-crafts)')
       .setRequired(true)
+  )
+  .addStringOption(option =>
+    option.setName('message_id_1')
+      .setDescription('Discord message ID #1')
+      .setRequired(true)
+  )
+  .addStringOption(option =>
+    option.setName('url')
+      .setDescription('Destination URL for the pin')
+      .setRequired(false)
   );
-// Add up to 10 message_id options
-for (let i = 1; i <= 10; i++) {
+// Add up to 9 more optional message_id options (message_id_2 to message_id_10)
+for (let i = 2; i <= 10; i++) {
   data.addStringOption(option =>
     option.setName(`message_id_${i}`)
       .setDescription(`Discord message ID #${i}`)
-      .setRequired(i === 1) // Only the first is required
+      .setRequired(false)
   );
 }
 
 // Command handler
 async function execute(interaction) {
   const board = interaction.options.getString('board');
+  const url = interaction.options.getString('url');
   const messageIds = [];
   for (let i = 1; i <= 10; i++) {
     const id = interaction.options.getString(`message_id_${i}`);
@@ -31,13 +42,33 @@ async function execute(interaction) {
     await interaction.reply('You must provide at least one message ID.');
     return;
   }
-
+  // Load user access token
+  const fs = require('fs');
+  const tokens = fs.existsSync('src/services/pinterest_tokens.json') ? JSON.parse(fs.readFileSync('src/services/pinterest_tokens.json', 'utf8')) : {};
+  const accessToken = tokens[interaction.user.id];
+  if (!accessToken) {
+    await interaction.reply('You must authenticate with Pinterest first using /auth.');
+    return;
+  }
+  // Load boards for this user
+  let boardsJson = {};
+  try {
+    boardsJson = JSON.parse(fs.readFileSync('boards.json', 'utf8'));
+  } catch (e) {}
+  // Get Pinterest account ID for this user (assume only one for now)
+  const userBoards = Object.values(boardsJson)[0] || [];
+  // Find board by name (case-insensitive)
+  const boardObj = userBoards.find(b => b.name.toLowerCase() === board.toLowerCase());
+  if (!boardObj) {
+    const available = userBoards.map(b => b.name).join(', ') || 'No boards found. Run /sync first.';
+    await interaction.reply(`Board "${board}" not found. Available boards: ${available}`);
+    return;
+  }
+  const boardId = boardObj.id;
   const results = [];
   for (const messageId of messageIds) {
     try {
-      // Fetch the message from the same channel
       const message = await interaction.channel.messages.fetch(messageId);
-      // Try to get the first image URL from attachments or embeds
       let imageUrl = null;
       if (message.attachments.size > 0) {
         imageUrl = message.attachments.first().url;
@@ -48,8 +79,7 @@ async function execute(interaction) {
         results.push(`Message ${messageId}: No image found.`);
         continue;
       }
-      // Call Pinterest service (placeholder)
-      const pinResult = await pinImageToBoard(board, imageUrl);
+      const pinResult = await pinImageToBoard(boardId, imageUrl, url, accessToken);
       if (pinResult.success) {
         results.push(`Message ${messageId}: Pinned successfully.`);
       } else {
