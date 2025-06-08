@@ -1,6 +1,7 @@
 require('dotenv').config();
 const { Client, GatewayIntentBits, Events, Collection, REST, Routes } = require('discord.js');
 const pinCommand = require('./commands/pin');
+const promptCommand = require('./commands/prompt');
 
 // Load environment variables
 const DISCORD_TOKEN = process.env.MJPIN_DISCORD_TOKEN;
@@ -28,14 +29,14 @@ const client = new Client({
 // Register slash commands on startup
 client.once(Events.ClientReady, async () => {
   console.log(`mjpin bot is online as ${client.user.tag}`);
-  // Register /pin command for the guild
+  // Register /pin and /prompt commands for the guild
   const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
   try {
     await rest.put(
       Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
-      { body: [pinCommand.data.toJSON()] }
+      { body: [pinCommand.data.toJSON(), promptCommand.data.toJSON()] }
     );
-    console.log('Registered /pin command');
+    console.log('Registered /pin and /prompt commands');
   } catch (error) {
     console.error('Error registering slash command:', error);
   }
@@ -57,6 +58,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
   if (interaction.commandName === 'pin') {
     await pinCommand.execute(interaction);
+  } else if (interaction.commandName === 'prompt') {
+    await promptCommand.execute(interaction);
   }
 });
 
