@@ -23,8 +23,8 @@ const data = new SlashCommandBuilder()
   )
   .addStringOption(option =>
     option.setName('url')
-      .setDescription('Destination URL for the pin')
-      .setRequired(false)
+      .setDescription('Destination URL for the pin (required)')
+      .setRequired(true)
   );
 // Add up to 9 more optional message_id options (message_id_2 to message_id_10)
 for (let i = 2; i <= 10; i++) {
@@ -37,6 +37,8 @@ for (let i = 2; i <= 10; i++) {
 
 // Command handler
 async function execute(interaction) {
+  await interaction.deferReply(); // Defer the reply immediately
+
   const board = interaction.options.getString('board');
   const url = interaction.options.getString('url');
   const messageIds = [];
@@ -45,7 +47,7 @@ async function execute(interaction) {
     if (id) messageIds.push(id);
   }
   if (messageIds.length === 0) {
-    await interaction.reply('You must provide at least one message ID.');
+    await interaction.editReply('You must provide at least one message ID.');
     return;
   }
   // Load user access token
@@ -53,7 +55,7 @@ async function execute(interaction) {
   const tokens = fs.existsSync('src/services/pinterest_tokens.json') ? JSON.parse(fs.readFileSync('src/services/pinterest_tokens.json', 'utf8')) : {};
   const accessToken = tokens[interaction.user.id];
   if (!accessToken) {
-    await interaction.reply('You must authenticate with Pinterest first using /auth.');
+    await interaction.editReply('You must authenticate with Pinterest first using /auth.');
     return;
   }
   // Load boards for this user
@@ -67,7 +69,7 @@ async function execute(interaction) {
   const boardObj = userBoards.find(b => b.name.toLowerCase() === board.toLowerCase());
   if (!boardObj) {
     const available = userBoards.map(b => b.name).join(', ') || 'No boards found. Run /sync first.';
-    await interaction.reply(`Board "${board}" not found. Available boards: ${available}`);
+    await interaction.editReply(`Board "${board}" not found. Available boards: ${available}`);
     return;
   }
   const boardId = boardObj.id;
@@ -78,7 +80,7 @@ async function execute(interaction) {
   const now = Date.now();
   let pinCount = getRecentPinCount(accountId, now);
   if (pinCount >= MAX_PINS_PER_24H) {
-    await interaction.reply(`Pin limit reached for this account (${MAX_PINS_PER_24H} pins per 24 hours). Try again later.`);
+    await interaction.editReply(`Pin limit reached for this account (${MAX_PINS_PER_24H} pins per 24 hours). Try again later.`);
     return;
   }
 
@@ -116,7 +118,7 @@ async function execute(interaction) {
       results.push(`Message ${messageId}: Error - ${err.message}`);
     }
   }
-  await interaction.reply(results.join('\n'));
+  await interaction.editReply(results.join('\n'));
 }
 
 module.exports = {
