@@ -1,5 +1,11 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { pinImageToBoard } = require('../services/pinterest');
+const path = require('path');
+const {
+  MAX_PINS_PER_24H,
+  getRecentPinCount,
+  recordPin
+} = require('../utils/pinRateLimit');
 
 // Command registration data
 const data = new SlashCommandBuilder()
@@ -7,7 +13,7 @@ const data = new SlashCommandBuilder()
   .setDescription('Pin images to a Pinterest board from message IDs')
   .addStringOption(option =>
     option.setName('board')
-      .setDescription('Pinterest board slug (e.g., paper-crafts)')
+      .setDescription('Pinterest board name.')
       .setRequired(true)
   )
   .addStringOption(option =>
@@ -65,8 +71,26 @@ async function execute(interaction) {
     return;
   }
   const boardId = boardObj.id;
+
+  // --- PIN RATE LIMIT CHECK ---
+  // Use the Pinterest account ID as the key for rate limiting
+  const accountId = Object.keys(boardsJson)[0];
+  const now = Date.now();
+  let pinCount = getRecentPinCount(accountId, now);
+  if (pinCount >= MAX_PINS_PER_24H) {
+    await interaction.reply(`Pin limit reached for this account (${MAX_PINS_PER_24H} pins per 24 hours). Try again later.`);
+    return;
+  }
+
   const results = [];
+  let pinsMade = 0;
   for (const messageId of messageIds) {
+    // Check rate limit before each pin
+    pinCount = getRecentPinCount(accountId, Date.now());
+    if (pinCount >= MAX_PINS_PER_24H) {
+      results.push(`Pin limit reached (${MAX_PINS_PER_24H}/24h). Skipped remaining pins.`);
+      break;
+    }
     try {
       const message = await interaction.channel.messages.fetch(messageId);
       let imageUrl = null;
@@ -81,7 +105,10 @@ async function execute(interaction) {
       }
       const pinResult = await pinImageToBoard(boardId, imageUrl, url, accessToken);
       if (pinResult.success) {
-        results.push(`Message ${messageId}: Pinned successfully.`);
+        recordPin(accountId, Date.now());
+        const countAfter = getRecentPinCount(accountId, Date.now());
+        results.push(`Message ${messageId}: Pinned successfully.\n24 hour pin count: ${countAfter}/${MAX_PINS_PER_24H}`);
+        pinsMade++;
       } else {
         results.push(`Message ${messageId}: Failed to pin (${pinResult.error || 'unknown error'}).`);
       }

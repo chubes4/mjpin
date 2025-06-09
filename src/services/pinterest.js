@@ -2,8 +2,6 @@ const axios = require('axios');
 const fs = require('fs');
 require('dotenv').config();
 
-const PINTEREST_ACCESS_TOKEN = process.env.MJPIN_PINTEREST_ACCESS_TOKEN;
-
 /**
  * Pin an image to a Pinterest board using the v5 API.
  * @param {string} board - The board slug (e.g., 'paper-crafts').
