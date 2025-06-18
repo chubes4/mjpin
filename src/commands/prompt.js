@@ -23,10 +23,16 @@ async function execute(interaction) {
     return; // Prevent further code from running
   } catch (err) {
     try {
-      await interaction.editReply(`Error: ${err.message}`);
+      // Check if interaction is still valid before attempting to edit reply
+      if (!interaction.replied && !interaction.deferred) {
+        await interaction.reply(`Error: ${err.message}`);
+      } else {
+        await interaction.editReply(`Error: ${err.message}`);
+      }
     } catch (e) {
-      // If editReply fails (e.g., already replied), log the error
-      console.error('Failed to edit reply:', e);
+      // If reply/editReply fails (e.g., already replied), log the error but don't throw
+      console.error('Failed to send error message to user:', e);
+      console.error('Original error that caused this:', err);
     }
   }
 }

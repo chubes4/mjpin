@@ -1,31 +1,39 @@
-const fs = require('fs');
-const path = require('path');
+const { readJsonFile, writeJsonFile } = require('./jsonFileManager');
 
-const PIN_COUNTS_FILE = path.join(__dirname, '../../pin_counts.json');
-const MAX_PINS_PER_24H = 100;
+const PIN_COUNTS_FILE = 'pin_counts.json';
+const MAX_PINS_PER_24H = 150;
 const WINDOW_MS = 24 * 60 * 60 * 1000;
 
-function loadPinCounts() {
-  if (!fs.existsSync(PIN_COUNTS_FILE)) return {};
-  return JSON.parse(fs.readFileSync(PIN_COUNTS_FILE, 'utf8'));
+async function loadPinCounts() {
+  try {
+    return await readJsonFile(PIN_COUNTS_FILE);
+  } catch (error) {
+    console.error('Error loading pin counts:', error);
+    return {};
+  }
 }
 
-function savePinCounts(counts) {
-  fs.writeFileSync(PIN_COUNTS_FILE, JSON.stringify(counts, null, 2));
+async function savePinCounts(counts) {
+  try {
+    await writeJsonFile(PIN_COUNTS_FILE, counts);
+  } catch (error) {
+    console.error('Error saving pin counts:', error);
+    throw error;
+  }
 }
 
-function getRecentPinCount(accountId, now = Date.now()) {
-  const counts = loadPinCounts();
+async function getRecentPinCount(accountId, now = Date.now()) {
+  const counts = await loadPinCounts();
   const timestamps = (counts[accountId] || []).filter(ts => now - ts < WINDOW_MS);
   return timestamps.length;
 }
 
-function recordPin(accountId, now = Date.now()) {
-  const counts = loadPinCounts();
+async function recordPin(accountId, now = Date.now()) {
+  const counts = await loadPinCounts();
   const timestamps = (counts[accountId] || []).filter(ts => now - ts < WINDOW_MS);
   timestamps.push(now);
   counts[accountId] = timestamps;
-  savePinCounts(counts);
+  await savePinCounts(counts);
 }
 
 module.exports = {

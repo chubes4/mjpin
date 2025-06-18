@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { pinImageToBoard } = require('../services/pinterest');
+const { pinImageToBoard, getActiveAccount, getBoardsForAccount } = require('../services/pinterest');
 const path = require('path');
 const {
   MAX_PINS_PER_24H,
@@ -50,37 +50,37 @@ async function execute(interaction) {
     await interaction.editReply('You must provide at least one message ID.');
     return;
   }
-  // Load user access token
-  const fs = require('fs');
-  const tokens = fs.existsSync('src/services/pinterest_tokens.json') ? JSON.parse(fs.readFileSync('src/services/pinterest_tokens.json', 'utf8')) : {};
-  const accessToken = tokens[interaction.user.id];
-  if (!accessToken) {
-    await interaction.editReply('You must authenticate with Pinterest first using /auth.');
+
+  // Get the active Pinterest account
+  const activeAccount = await getActiveAccount(interaction.user.id);
+  if (!activeAccount) {
+    await interaction.editReply('You must authenticate with Pinterest first using `/auth`, then select an active account using `/settings`.');
     return;
   }
-  // Load boards for this user
-  let boardsJson = {};
-  try {
-    boardsJson = JSON.parse(fs.readFileSync('boards.json', 'utf8'));
-  } catch (e) {}
-  // Get Pinterest account ID for this user (assume only one for now)
-  const userBoards = Object.values(boardsJson)[0] || [];
+
+  // Get boards for the active account
+  const userBoards = await getBoardsForAccount(activeAccount.pinterestUserId);
+  if (!userBoards || userBoards.length === 0) {
+    await interaction.editReply(`No boards found for account "${activeAccount.accountName}". Please run \`/sync\` first.`);
+    return;
+  }
+
   // Find board by name (case-insensitive)
   const boardObj = userBoards.find(b => b.name.toLowerCase() === board.toLowerCase());
   if (!boardObj) {
     const available = userBoards.map(b => b.name).join(', ') || 'No boards found. Run /sync first.';
-    await interaction.editReply(`Board "${board}" not found. Available boards: ${available}`);
+    await interaction.editReply(`Board "${board}" not found for account "${activeAccount.accountName}". Available boards: ${available}`);
     return;
   }
   const boardId = boardObj.id;
 
   // --- PIN RATE LIMIT CHECK ---
   // Use the Pinterest account ID as the key for rate limiting
-  const accountId = Object.keys(boardsJson)[0];
+  const accountId = activeAccount.pinterestUserId;
   const now = Date.now();
-  let pinCount = getRecentPinCount(accountId, now);
+  let pinCount = await getRecentPinCount(accountId, now);
   if (pinCount >= MAX_PINS_PER_24H) {
-    await interaction.editReply(`Pin limit reached for this account (${MAX_PINS_PER_24H} pins per 24 hours). Try again later.`);
+    await interaction.editReply(`Pin limit reached for account "${activeAccount.accountName}" (${MAX_PINS_PER_24H} pins per 24 hours). Try again later.`);
     return;
   }
 
@@ -88,7 +88,7 @@ async function execute(interaction) {
   let pinsMade = 0;
   for (const messageId of messageIds) {
     // Check rate limit before each pin
-    pinCount = getRecentPinCount(accountId, Date.now());
+    pinCount = await getRecentPinCount(accountId, Date.now());
     if (pinCount >= MAX_PINS_PER_24H) {
       results.push(`Pin limit reached (${MAX_PINS_PER_24H}/24h). Skipped remaining pins.`);
       break;
@@ -105,11 +105,11 @@ async function execute(interaction) {
         results.push(`Message ${messageId}: No image found.`);
         continue;
       }
-      const pinResult = await pinImageToBoard(boardId, imageUrl, url, accessToken);
+      const pinResult = await pinImageToBoard(boardId, imageUrl, url, activeAccount.accessToken);
       if (pinResult.success) {
-        recordPin(accountId, Date.now());
-        const countAfter = getRecentPinCount(accountId, Date.now());
-        results.push(`Message ${messageId}: Pinned successfully.\n24 hour pin count: ${countAfter}/${MAX_PINS_PER_24H}`);
+        await recordPin(accountId, Date.now());
+        const countAfter = await getRecentPinCount(accountId, Date.now());
+        results.push(`Message ${messageId}: Pinned successfully to "${activeAccount.accountName}".\n24 hour pin count: ${countAfter}/${MAX_PINS_PER_24H}`);
         pinsMade++;
       } else {
         results.push(`Message ${messageId}: Failed to pin (${pinResult.error || 'unknown error'}).`);
