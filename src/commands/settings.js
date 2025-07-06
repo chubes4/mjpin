@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ActionRowBuilder, ComponentType } = require('discord.js');
 const { getAllAccounts, getActiveAccount, setActiveAccount } = require('../services/pinterest');
+const { getRecentPinCount, MAX_PINS_PER_24H } = require('../utils/pinRateLimit');
 
 const data = new SlashCommandBuilder()
   .setName('settings')
@@ -22,18 +23,32 @@ async function execute(interaction) {
     }
     
     if (allAccounts.length === 1) {
+      const dailyCount = await getRecentPinCount(allAccounts[0].pinterestUserId);
       await interaction.editReply({
-        content: `You have one Pinterest account linked: **${allAccounts[0].accountName}**\n\nThis account is automatically active. Use \`/auth\` to link additional accounts.`,
+        content: `You have one Pinterest account linked: **${allAccounts[0].accountName}**\n\nDaily pins: ${dailyCount}/${MAX_PINS_PER_24H}\n\nThis account is automatically active. Use \`/auth\` to link additional accounts.`,
       });
       return;
     }
     
     // Multiple accounts - show dropdown for selection
-    const options = allAccounts.map(account => 
+    // Get daily counts for all accounts in parallel
+    const accountsWithCounts = await Promise.all(
+      allAccounts.map(async (account) => {
+        const dailyCount = await getRecentPinCount(account.pinterestUserId);
+        return {
+          ...account,
+          dailyCount
+        };
+      })
+    );
+    
+    const options = accountsWithCounts.map(account => 
       new StringSelectMenuOptionBuilder()
         .setLabel(account.accountName)
         .setValue(account.pinterestUserId)
-        .setDescription(account.pinterestUserId === activeAccount?.pinterestUserId ? '✓ Currently active' : 'Click to set as active')
+        .setDescription(account.pinterestUserId === activeAccount?.pinterestUserId 
+          ? `✓ Currently active - Daily pins: ${account.dailyCount}/${MAX_PINS_PER_24H}` 
+          : `Daily pins: ${account.dailyCount}/${MAX_PINS_PER_24H}`)
         .setDefault(account.pinterestUserId === activeAccount?.pinterestUserId)
     );
     
