@@ -1,22 +1,24 @@
 const axios = require('axios');
 const { readTextFile } = require('../utils/jsonFileManager');
+const fs = require('fs').promises;
+const path = require('path');
 require('dotenv').config();
 
-let SYSTEM_PROMPT;
+let SYSTEM_PROMPT = '';
 
-// Load system prompt from data directory or environment variable
 async function loadSystemPrompt() {
   try {
-    const systemPromptFromFile = await readTextFile('system_prompt.txt');
-    if (systemPromptFromFile) {
-      SYSTEM_PROMPT = systemPromptFromFile;
-    } else {
-      SYSTEM_PROMPT = process.env.MJPIN_OPENAI_SYSTEM_PROMPT || 'You are a helpful AI that generates Midjourney prompts.';
-    }
-} catch (err) {
-    console.warn('Could not load system prompt from file, using environment variable or default');
-  SYSTEM_PROMPT = process.env.MJPIN_OPENAI_SYSTEM_PROMPT || 'You are a helpful AI that generates Midjourney prompts.';
-}
+    const instructionsPath = path.join(__dirname, '../../data/system_prompt_instructions.txt');
+    const wordbanksPath = path.join(__dirname, '../../data/system_prompt_word_banks.txt');
+    const [instructions, wordbanks] = await Promise.all([
+      fs.readFile(instructionsPath, 'utf8').catch(() => ''),
+      fs.readFile(wordbanksPath, 'utf8').catch(() => ''),
+    ]);
+    SYSTEM_PROMPT = instructions + '\n\n' + wordbanks;
+  } catch (err) {
+    console.warn('Could not load system prompt files:', err);
+    SYSTEM_PROMPT = process.env.MJPIN_OPENAI_SYSTEM_PROMPT || 'You are a helpful AI that generates Midjourney prompts.';
+  }
 }
 
 // Initialize system prompt on module load

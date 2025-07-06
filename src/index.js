@@ -6,6 +6,7 @@ const syncCommand = require('./commands/sync');
 const authCommand = require('./commands/auth');
 const settingsCommand = require('./commands/settings');
 const restartCommand = require('./commands/restart');
+const editPromptCommand = require('./commands/editprompt');
 
 // Load environment variables
 const DISCORD_TOKEN = process.env.MJPIN_DISCORD_TOKEN;
@@ -78,6 +79,7 @@ client.once(Events.ClientReady, async () => {
         authCommand.data.toJSON(),
         settingsCommand.data.toJSON(),
         restartCommand.data.toJSON(),
+        editPromptCommand.data.toJSON(),
       ] }
     );
     console.log('Registered /pin, /prompt, /sync, /auth, and /settings commands');
@@ -105,6 +107,18 @@ client.on(Events.Resume, () => {
 
 // Handle slash command interactions
 client.on(Events.InteractionCreate, async (interaction) => {
+  // Handle select menu for /editprompt section selection
+  if (interaction.isStringSelectMenu() && interaction.customId === 'editprompt-section-select') {
+    await editPromptCommand.handleSectionSelect(interaction);
+    return;
+  }
+
+  // Handle modal submissions for /editprompt
+  if (interaction.type === 5 && interaction.customId.startsWith('editprompt-modal-')) {
+    await editPromptCommand.handleModalSubmit(interaction);
+    return;
+  }
+
   if (!interaction.isChatInputCommand()) return;
   
   try {
@@ -120,6 +134,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
       await settingsCommand.execute(interaction);
     } else if (interaction.commandName === 'restart') {
       await restartCommand.execute(interaction);
+    } else if (interaction.commandName === 'editprompt') {
+      await editPromptCommand.execute(interaction);
     }
   } catch (commandError) {
     console.error(`Error executing ${interaction.commandName} command:`, commandError);
