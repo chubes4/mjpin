@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ActionRowBuilder, ComponentType } = require('discord.js');
 const { getAllAccounts, getActiveAccount, setActiveAccount } = require('../services/pinterest');
-const { getRecentPinCount, MAX_PINS_PER_24H } = require('../utils/pinRateLimit');
+const { getRecentPinCount, MAX_PINS_PER_12H } = require('../utils/pinRateLimit');
 
 const data = new SlashCommandBuilder()
   .setName('settings')
@@ -25,7 +25,7 @@ async function execute(interaction) {
     if (allAccounts.length === 1) {
       const dailyCount = await getRecentPinCount(allAccounts[0].pinterestUserId);
       await interaction.editReply({
-        content: `You have one Pinterest account linked: **${allAccounts[0].accountName}**\n\nDaily pins: ${dailyCount}/${MAX_PINS_PER_24H}\n\nThis account is automatically active. Use \`/auth\` to link additional accounts.`,
+        content: `You have one Pinterest account linked: **${allAccounts[0].accountName}**\n\n12-hour pins: ${dailyCount}/${MAX_PINS_PER_12H}\n\nThis account is automatically active. Use \`/auth\` to link additional accounts.`,
       });
       return;
     }
@@ -47,8 +47,8 @@ async function execute(interaction) {
         .setLabel(account.accountName)
         .setValue(account.pinterestUserId)
         .setDescription(account.pinterestUserId === activeAccount?.pinterestUserId 
-          ? `✓ Currently active - Daily pins: ${account.dailyCount}/${MAX_PINS_PER_24H}` 
-          : `Daily pins: ${account.dailyCount}/${MAX_PINS_PER_24H}`)
+          ? `✓ Currently active - 12-hour pins: ${account.dailyCount}/${MAX_PINS_PER_12H}`
+: `12-hour pins: ${account.dailyCount}/${MAX_PINS_PER_12H}`)
         .setDefault(account.pinterestUserId === activeAccount?.pinterestUserId)
     );
     

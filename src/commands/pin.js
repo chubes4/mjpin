@@ -2,7 +2,7 @@ const { SlashCommandBuilder } = require('discord.js');
 const { pinImageToBoard, getActiveAccount, getBoardsForAccount } = require('../services/pinterest');
 const path = require('path');
 const {
-  MAX_PINS_PER_24H,
+  MAX_PINS_PER_12H,
   getRecentPinCount,
   recordPin
 } = require('../utils/pinRateLimit');
@@ -79,8 +79,8 @@ async function execute(interaction) {
   const accountId = activeAccount.pinterestUserId;
   const now = Date.now();
   let pinCount = await getRecentPinCount(accountId, now);
-  if (pinCount >= MAX_PINS_PER_24H) {
-    await interaction.editReply(`Pin limit reached for account "${activeAccount.accountName}" (${MAX_PINS_PER_24H} pins per 24 hours). Try again later.`);
+  if (pinCount >= MAX_PINS_PER_12H) {
+    await interaction.editReply(`Pin limit reached for account "${activeAccount.accountName}" (${MAX_PINS_PER_12H} pins per 12 hours). Try again later.`);
     return;
   }
 
@@ -89,8 +89,8 @@ async function execute(interaction) {
   for (const messageId of messageIds) {
     // Check rate limit before each pin
     pinCount = await getRecentPinCount(accountId, Date.now());
-    if (pinCount >= MAX_PINS_PER_24H) {
-      results.push(`Pin limit reached (${MAX_PINS_PER_24H}/24h). Skipped remaining pins.`);
+    if (pinCount >= MAX_PINS_PER_12H) {
+      results.push(`Pin limit reached (${MAX_PINS_PER_12H}/12h). Skipped remaining pins.`);
       break;
     }
     try {
@@ -109,7 +109,7 @@ async function execute(interaction) {
       if (pinResult.success) {
         await recordPin(accountId, Date.now());
         const countAfter = await getRecentPinCount(accountId, Date.now());
-        results.push(`Message ${messageId}: Pinned successfully to "${activeAccount.accountName}".\n24 hour pin count: ${countAfter}/${MAX_PINS_PER_24H}`);
+        results.push(`Message ${messageId}: Pinned successfully to "${activeAccount.accountName}".\n12-hour pin count: ${countAfter}/${MAX_PINS_PER_12H}`);
         pinsMade++;
       } else {
         results.push(`Message ${messageId}: Failed to pin (${pinResult.error || 'unknown error'}).`);

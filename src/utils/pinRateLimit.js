@@ -1,8 +1,8 @@
 const { readJsonFile, writeJsonFile } = require('./jsonFileManager');
 
 const PIN_COUNTS_FILE = 'pin_counts.json';
-const MAX_PINS_PER_24H = 150;
-const WINDOW_MS = 24 * 60 * 60 * 1000;
+const MAX_PINS_PER_12H = 75;
+const WINDOW_MS = 12 * 60 * 60 * 1000;
 
 async function loadPinCounts() {
   try {
@@ -37,7 +37,7 @@ async function recordPin(accountId, now = Date.now()) {
 }
 
 module.exports = {
-  MAX_PINS_PER_24H,
+  MAX_PINS_PER_12H,
   getRecentPinCount,
   recordPin,
 }; 
