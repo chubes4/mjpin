@@ -7,6 +7,7 @@ mjpin is a modular Node.js Discord bot designed to automate pinning Midjourney-g
 - **/auth**: Authenticate your Pinterest account with the bot using a secure OAuth2 flow.
 - **/sync**: (Admin-only) Sync your Pinterest boards to make them available for pinning.
 - **/prompt**: Generate a Midjourney prompt using OpenAI.
+- **/editprompt**: (Admin-only) Edit the system prompt files used for prompt generation. Supports modular editing of individual prompt sections.
 - **Pin Rate Limiting**: Prevents API spam by limiting pins to 100 per 24-hour period per Pinterest account.
 - **Multi-Account Support**: Authenticate and use multiple Pinterest accounts.
 
@@ -15,6 +16,15 @@ mjpin is a modular Node.js Discord bot designed to automate pinning Midjourney-g
 - `src/commands/`: Contains all the slash command handlers.
 - `src/services/`: Houses integration logic for third-party APIs like Pinterest and OpenAI.
 - `src/utils/`: Includes utility functions, such as the pin rate limiter.
+- `data/`: Contains modular prompt files used for generating Midjourney prompts. Any `.txt` file in this directory will be automatically included in the system prompt.
+
+## Prompt System
+The bot uses a modular prompt system where all `.txt` files in the `data/` directory are automatically combined to create the system prompt for OpenAI. This allows for easy customization and organization of different prompt components:
+
+- **Modular Editing**: Use `/editprompt` to edit individual prompt files through Discord
+- **Auto-Discovery**: Any `.txt` file added to the `data/` directory will automatically be included
+- **Character Limits**: Each prompt file must be under 4000 characters for Discord modal editing
+- **Dynamic Loading**: Prompt changes are automatically reloaded when files are edited
 
 ## Setup
 1.  **Clone the repository:**

@@ -8,13 +8,26 @@ let SYSTEM_PROMPT = '';
 
 async function loadSystemPrompt() {
   try {
-    const instructionsPath = path.join(__dirname, '../../data/system_prompt_instructions.txt');
-    const wordbanksPath = path.join(__dirname, '../../data/system_prompt_word_banks.txt');
-    const [instructions, wordbanks] = await Promise.all([
-      fs.readFile(instructionsPath, 'utf8').catch(() => ''),
-      fs.readFile(wordbanksPath, 'utf8').catch(() => ''),
-    ]);
-    SYSTEM_PROMPT = instructions + '\n\n' + wordbanks;
+    const dataDir = path.join(__dirname, '../../data');
+    const files = await fs.readdir(dataDir);
+    const txtFiles = files.filter(file => file.endsWith('.txt'));
+    
+    const prompts = await Promise.all(
+      txtFiles.map(file => {
+        const filePath = path.join(dataDir, file);
+        return fs.readFile(filePath, 'utf8').catch(err => {
+          console.warn(`Could not read prompt file: ${file}`, err);
+          return '';
+        });
+      })
+    );
+
+    SYSTEM_PROMPT = prompts.join('\n\n');
+
+    if (!SYSTEM_PROMPT) {
+      throw new Error('No prompt files could be read and no fallback was set.');
+    }
+    
   } catch (err) {
     console.warn('Could not load system prompt files:', err);
     SYSTEM_PROMPT = process.env.MJPIN_OPENAI_SYSTEM_PROMPT || 'You are a helpful AI that generates Midjourney prompts.';
@@ -71,4 +84,5 @@ async function generatePrompt(input) {
 
 module.exports = {
   generatePrompt,
+  loadSystemPrompt,
 };
