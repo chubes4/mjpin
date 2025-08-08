@@ -1,7 +1,7 @@
 const { readJsonFile, writeJsonFile } = require('./jsonFileManager');
 
 const PIN_COUNTS_FILE = 'pin_counts.json';
-const MAX_PINS_PER_12H = 75;
+const MAX_PINS_PER_12H = 100;
 const WINDOW_MS = 12 * 60 * 60 * 1000;
 
 async function loadPinCounts() {

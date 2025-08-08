@@ -4,11 +4,9 @@ node_modules/
 # Ignore environment and config files
 .env
 
-# Ignore sensitive data directory
-/data/
-
-# Ignore all hidden files (dotfiles)
-.*
-
-# Allow .gitignore itself
-!.gitignore 
+# Data: track directory, ignore runtime/private files only
+data/pinterest_tokens.json
+data/boards.json
+data/pin_counts.json
+data/*.private.txt
+data/*.local.txt 

@@ -8,7 +8,7 @@ mjpin is a modular Node.js Discord bot designed to automate pinning Midjourney-g
 - **/sync**: (Admin-only) Sync your Pinterest boards to make them available for pinning.
 - **/prompt**: Generate a Midjourney prompt using OpenAI.
 - **/editprompt**: (Admin-only) Edit the system prompt files used for prompt generation. Supports modular editing of individual prompt sections.
-- **Pin Rate Limiting**: Prevents API spam by limiting pins to 100 per 24-hour period per Pinterest account.
+- **Pin Rate Limiting**: Prevents API spam by limiting pins to 100 per 12-hour period per Pinterest account.
 - **Multi-Account Support**: Authenticate and use multiple Pinterest accounts.
 
 ## Project Structure
@@ -18,51 +18,67 @@ mjpin is a modular Node.js Discord bot designed to automate pinning Midjourney-g
 - `src/utils/`: Includes utility functions, such as the pin rate limiter.
 - `data/`: Contains modular prompt files used for generating Midjourney prompts. Any `.txt` file in this directory will be automatically included in the system prompt.
 
-## Prompt System
-The bot uses a modular prompt system where all `.txt` files in the `data/` directory are automatically combined to create the system prompt for OpenAI. This allows for easy customization and organization of different prompt components:
-
-- **Modular Editing**: Use `/editprompt` to edit individual prompt files through Discord
-- **Auto-Discovery**: Any `.txt` file added to the `data/` directory will automatically be included
-- **Character Limits**: Each prompt file must be under 4000 characters for Discord modal editing
-- **Dynamic Loading**: Prompt changes are automatically reloaded when files are edited
-
-## Setup
-1.  **Clone the repository:**
-    ```bash
-    git clone <repository-url>
-    cd mjpin
-    ```
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    ```
-3.  **Configure environment variables:**
-    Copy the `.env.example` file to `.env` and fill in the required API keys and tokens.
-    ```bash
-    cp .env.example .env
-    ```
-4.  **Run the bot:**
-    For development, you can run the bot directly:
-    ```bash
-    node src/index.js
-    ```
-    For production, it's recommended to use a process manager like `pm2` to keep the bot online:
-    ```bash
-    pm2 start src/index.js --name mjpin
-    ```
+## Getting Started
+1. **Clone the repository:**
+   ```bash
+   git clone <repository-url>
+   cd mjpin
+   ```
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+3. **Set up environment variables:**
+   - Copy the example file and fill in your values:
+     ```bash
+     cp .env.example .env
+     ```
+   - See the Environment Variables section below for details.
+4. **Prepare the data directory:**
+   - Ensure a `data/` directory exists at the project root.
+   - Include the provided prompt `.txt` files (or use your own). See `data/README.md` for how prompts are assembled and how to keep private prompts out of git while still being loaded by the bot.
+5. **Run the bot:**
+   - Development:
+     ```bash
+     npm start
+     ```
+   - Production with pm2:
+     ```bash
+     pm2 start src/index.js --name mjpin
+     ```
 
 ## Environment Variables
 All secrets and API keys are managed via the `.env` file.
 
 - `MJPIN_DISCORD_TOKEN`: Your Discord bot token.
 - `MJPIN_DISCORD_CLIENT_ID`: Your Discord application's client ID.
+- `MJPIN_DISCORD_GUILD_ID`: The Discord server (guild) ID where you will register the slash commands.
 - `MJPIN_PINTEREST_CLIENT_ID`: Your Pinterest application's client ID.
 - `MJPIN_PINTEREST_CLIENT_SECRET`: Your Pinterest application's client secret.
-- `MJPIN_PINTEREST_REDIRECT_URI`: The OAuth redirect URI for your Pinterest app (e.g., `http://your-server-ip:3000/pinterest/callback`).
+- `MJPIN_PINTEREST_REDIRECT_URI`: The OAuth redirect URI for your Pinterest app (e.g., `https://your-domain.com/src/services/pinterest-auth.php` or another callback endpoint you host that runs `src/services/pinterest-auth.php`).
 - `MJPIN_OPENAI_API_KEY`: Your OpenAI API key.
-- `MJPIN_GUILD_ID`: The Discord server (guild) ID where you will register the slash commands.
-- `MJPIN_ADMIN_USER_ID`: The Discord user ID of the bot administrator.
-- `MJPIN_LOG_CHANNEL_ID`: (Optional) A Discord channel ID for logging errors and important events.
+- Optional: `MJPIN_OPENAI_MODEL` (defaults to `gpt-3.5-turbo`).
+- Optional: `MJPIN_OPENAI_SYSTEM_PROMPT` (used as fallback if no `.txt` prompt files can be read from `data/`).
+
+## Data Directory
+See `data/README.md` for complete details on:
+- How all top-level `.txt` files in `data/` are concatenated to form the system prompt
+- File ordering via numeric prefixes (e.g., `00_`, `10_`, ...)
+- Keeping private prompt files out of git while still loaded (e.g., `*.private.txt`, `*.local.txt`)
+- Runtime JSON files created by the bot that should not be committed
+
+## OAuth Flow (Pinterest)
+1. Run `/auth` in Discord. The bot replies with an authorization URL.
+2. Authorize the app. Pinterest redirects to your `MJPIN_PINTEREST_REDIRECT_URI`.
+3. The provided `src/services/pinterest-auth.php` can be deployed and used as the callback endpoint to complete the token exchange and store credentials in `data/pinterest_tokens.json`.
+4. Run `/sync` to fetch your Pinterest boards for the authenticated account.
+5. Use `/settings` to view/switch the active Pinterest account.
+
+## Usage
+- **/prompt**: Generate a Midjourney prompt using your configured system prompt.
+- **/pin**: Provide a board name, one or more `message_id_*`, and a destination `url` to pin images.
+- **/editprompt**: Admin-only; edit any `.txt` in `data/` through a modal UI.
+- **Rate limit**: 100 pins per 12-hour sliding window per Pinterest account.
 
 ## Contributing
 Contributions are welcome. Please adhere to the existing code structure and principles of modularity and security.
