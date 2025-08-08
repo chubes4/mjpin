@@ -67,12 +67,8 @@ See `data/README.md` for complete details on:
 - Keeping private prompt files out of git while still loaded (e.g., `*.private.txt`, `*.local.txt`)
 - Runtime JSON files created by the bot that should not be committed
 
-## Plain-English Overview (What You'll Do)
-- You’ll use `/prompt` to generate Midjourney-compatible prompts in Discord.
-- You’ll paste those prompts into the Midjourney bot in the same server to generate images.
-- When you like the images, you’ll upscale them, and then copy their Discord message IDs and run `/pin` to send them to a Pinterest board with your destination URL.
 
-## Quick How-To (Step-by-Step)
+## Quick Start Guide
 1. **Have both bots in the same Discord server**
    - Add the Midjourney bot to your server (per Midjourney’s instructions).
    - Add your mjpin bot to the same server, with scopes `bot` and `applications.commands` and permissions to read/send messages.
@@ -104,11 +100,6 @@ See `data/README.md` for complete details on:
 4. Run `/sync` to fetch your Pinterest boards for the authenticated account.
 5. Use `/settings` to view/switch the active Pinterest account.
 
-## Usage
-- **/prompt**: Generate a Midjourney prompt using your configured system prompt.
-- **/pin**: Provide a board name, one or more `message_id_*`, and a destination `url` to pin images.
-- **/editprompt**: Admin-only; edit any `.txt` in `data/` through a modal UI.
-- **Rate limit**: 100 pins per 12-hour sliding window per Pinterest account.
 
 ## Contributing
 Contributions are welcome. Please adhere to the existing code structure and principles of modularity and security.
