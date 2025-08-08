@@ -67,6 +67,36 @@ See `data/README.md` for complete details on:
 - Keeping private prompt files out of git while still loaded (e.g., `*.private.txt`, `*.local.txt`)
 - Runtime JSON files created by the bot that should not be committed
 
+## Plain-English Overview (What You'll Do)
+- You’ll use `/prompt` to generate Midjourney-compatible prompts in Discord.
+- You’ll paste those prompts into the Midjourney bot in the same server to generate images.
+- When you like the images, you’ll upscale them, and then copy their Discord message IDs and run `/pin` to send them to a Pinterest board with your destination URL.
+
+## Quick How-To (Step-by-Step)
+1. **Have both bots in the same Discord server**
+   - Add the Midjourney bot to your server (per Midjourney’s instructions).
+   - Add your mjpin bot to the same server, with scopes `bot` and `applications.commands` and permissions to read/send messages.
+2. **Start mjpin and register commands**
+   - Run the bot (`npm start` or pm2). The bot will register its slash commands in your guild automatically on startup.
+3. **Connect Pinterest**
+   - In Discord, run `/auth` and click the link to authorize. After approval, the callback stores your tokens.
+4. **Sync your boards**
+   - Run `/sync` to pull your Pinterest boards into the bot.
+5. **Generate prompts**
+   - Run `/prompt` with your idea. Copy the returned prompts.
+6. **Create images in Midjourney**
+   - Paste a prompt into the Midjourney bot in the same server/channel and generate images.
+7. **Get the Discord message ID(s)**
+   - In Discord, enable Developer Mode: User Settings → Advanced → Developer Mode.
+   - Right‑click the Midjourney image message → Copy Message ID.
+8. **Pin the images**
+   - Run `/pin` and provide:
+     - `board`: The exact Pinterest board name.
+     - `url`: The destination URL for the pin.
+     - `message_id_1..10`: The message IDs you copied.
+9. **Manage accounts (optional)**
+   - Use `/settings` to view or switch the active Pinterest account.
+
 ## OAuth Flow (Pinterest)
 1. Run `/auth` in Discord. The bot replies with an authorization URL.
 2. Authorize the app. Pinterest redirects to your `MJPIN_PINTEREST_REDIRECT_URI`.
