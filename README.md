@@ -2,6 +2,8 @@
 
 mjpin is a modular Node.js Discord bot designed to automate pinning Midjourney-generated images from Discord messages to your Pinterest boards. It supports multiple Pinterest accounts and includes features for workflow automation.
 
+> Note: This repository does not include prompt `.txt` files. Create your own in `data/` following `data/README.md`.
+
 ## Features
 - **/pin**: Pin up to 10 images from Discord messages to a specified Pinterest board.
 - **/auth**: Authenticate your Pinterest account with the bot using a secure OAuth2 flow.
@@ -36,7 +38,7 @@ mjpin is a modular Node.js Discord bot designed to automate pinning Midjourney-g
    - See the Environment Variables section below for details.
 4. **Prepare the data directory:**
    - Ensure a `data/` directory exists at the project root.
-   - Include the provided prompt `.txt` files (or use your own). See `data/README.md` for how prompts are assembled and how to keep private prompts out of git while still being loaded by the bot.
+   - Create your prompt chunk `.txt` files. See `data/README.md` for how prompts are assembled and how to keep private prompts out of git while still being loaded by the bot.
 5. **Run the bot:**
    - Development:
      ```bash
@@ -66,7 +68,6 @@ See `data/README.md` for complete details on:
 - File ordering via numeric prefixes (e.g., `00_`, `10_`, ...)
 - Keeping private prompt files out of git while still loaded (e.g., `*.private.txt`, `*.local.txt`)
 - Runtime JSON files created by the bot that should not be committed
-
 
 ## Quick Start Guide
 1. **Have both bots in the same Discord server**
@@ -99,7 +100,6 @@ See `data/README.md` for complete details on:
 3. The provided `src/services/pinterest-auth.php` can be deployed and used as the callback endpoint to complete the token exchange and store credentials in `data/pinterest_tokens.json`.
 4. Run `/sync` to fetch your Pinterest boards for the authenticated account.
 5. Use `/settings` to view/switch the active Pinterest account.
-
 
 ## Contributing
 Contributions are welcome. Please adhere to the existing code structure and principles of modularity and security.
