@@ -8,6 +8,7 @@ node_modules/
 data/pinterest_tokens.json
 data/boards.json
 data/pin_counts.json
+data/model_settings.json
 data/*.private.txt
 data/*.local.txt
 # Ignore all top-level prompt chunks (prompts are not included in the repo)

@@ -1,5 +1,6 @@
 const axios = require('axios');
 const { readTextFile } = require('../utils/jsonFileManager');
+const { getModelForGuild } = require('./modelSettings');
 const fs = require('fs').promises;
 const path = require('path');
 require('dotenv').config();
@@ -38,10 +39,10 @@ async function loadSystemPrompt() {
 loadSystemPrompt();
 
 const OPENAI_API_KEY = process.env.MJPIN_OPENAI_API_KEY;
-const OPENAI_MODEL = process.env.MJPIN_OPENAI_MODEL || 'gpt-3.5-turbo';
 
 // Note: Discord requires a reply within 15 seconds. For long generations, use deferred replies.
-async function generatePrompt(input) {
+// No default model: guild must set a model via /model
+async function generatePrompt(input, guildId = null) {
   if (!OPENAI_API_KEY) {
     throw new Error('OpenAI API key not set in environment.');
   }
@@ -51,14 +52,19 @@ async function generatePrompt(input) {
     await loadSystemPrompt();
   }
 
+  // Resolve model per guild; require explicit selection
+  const modelId = guildId ? await getModelForGuild(guildId) : null;
+  if (!modelId) {
+    throw new Error('OpenAI model is not configured for this server. Ask an admin to run /model to set it.');
+  }
+
   const url = 'https://api.openai.com/v1/chat/completions';
   const data = {
-    model: OPENAI_MODEL,
+    model: modelId,
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: input }
-    ],
-    temperature: 0.8
+    ]
   };
 
   try {

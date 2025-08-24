@@ -7,6 +7,7 @@ const authCommand = require('./commands/auth');
 const settingsCommand = require('./commands/settings');
 const restartCommand = require('./commands/restart');
 const editPromptCommand = require('./commands/editprompt');
+const modelCommand = require('./commands/model');
 
 // Load environment variables
 const DISCORD_TOKEN = process.env.MJPIN_DISCORD_TOKEN;
@@ -80,6 +81,7 @@ client.once(Events.ClientReady, async () => {
         settingsCommand.data.toJSON(),
         restartCommand.data.toJSON(),
         editPromptCommand.data.toJSON(),
+        modelCommand.data.toJSON(),
       ] }
     );
     console.log('Registered /pin, /prompt, /sync, /auth, and /settings commands');
@@ -136,6 +138,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
       await restartCommand.execute(interaction);
     } else if (interaction.commandName === 'editprompt') {
       await editPromptCommand.execute(interaction);
+    } else if (interaction.commandName === 'model') {
+      await modelCommand.execute(interaction);
     }
   } catch (commandError) {
     console.error(`Error executing ${interaction.commandName} command:`, commandError);
