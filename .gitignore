@@ -12,4 +12,13 @@ data/model_settings.json
 data/*.private.txt
 data/*.local.txt
 # Ignore all top-level prompt chunks (prompts are not included in the repo)
-data/*.txt 
+data/*.txt
+
+# Build and deployment files
+build/
+dist/
+*.tar.gz
+*.zip
+.buildignore
+build.sh
+deploy.sh

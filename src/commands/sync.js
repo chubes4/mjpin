@@ -10,13 +10,11 @@ const data = new SlashCommandBuilder()
 async function execute(interaction) {
   await interaction.deferReply({ ephemeral: true });
   console.log('SYNC COMMAND EXECUTED');
-  // Admin-only: require MANAGE_GUILD permission
   if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
     await interaction.editReply({ content: 'You do not have permission to use this command.', ephemeral: true });
     return;
   }
 
-  // Get the active Pinterest account
   const activeAccount = await getActiveAccount(interaction.user.id);
   if (!activeAccount) {
     await interaction.editReply('You must authenticate with Pinterest first using `/auth`, then select an active account using `/settings`.');
@@ -24,7 +22,6 @@ async function execute(interaction) {
   }
 
   try {
-    // Fetch all boards with pagination
     let allBoards = [];
     let bookmark = null;
     do {
@@ -46,7 +43,6 @@ async function execute(interaction) {
       name: b.name
     }));
     
-    // Save boards for the active account
     await saveBoardsForAccount(activeAccount.pinterestUserId, boards);
     
     await interaction.editReply(`✅ **Sync complete!**\n\nSynced ${boards.length} boards for account "${activeAccount.accountName}".`);

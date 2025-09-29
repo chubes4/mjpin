@@ -8,32 +8,27 @@ const settingsCommand = require('./commands/settings');
 const restartCommand = require('./commands/restart');
 const editPromptCommand = require('./commands/editprompt');
 const modelCommand = require('./commands/model');
+const gatherCommand = require('./commands/gather');
 
-// Load environment variables
 const DISCORD_TOKEN = process.env.MJPIN_DISCORD_TOKEN;
 const GUILD_ID = process.env.MJPIN_DISCORD_GUILD_ID;
 const CLIENT_ID = process.env.MJPIN_DISCORD_CLIENT_ID;
 
-// Debug log to verify .env loading
 console.log('Loaded from .env:', {
   CLIENT_ID,
   DISCORD_TOKEN: DISCORD_TOKEN ? '[HIDDEN]' : undefined,
   GUILD_ID
 });
 
-// Global error handlers to prevent crashes
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-  // Don't exit process, just log the error
 });
 
 process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);
-  // For uncaught exceptions, we should exit gracefully
   process.exit(1);
 });
 
-// Graceful shutdown handlers
 process.on('SIGTERM', () => {
   console.log('SIGTERM received, shutting down gracefully...');
   if (client) {
@@ -50,7 +45,6 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
-// Initialize Discord client
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -59,32 +53,29 @@ const client = new Client({
   ],
 });
 
-// Register slash commands on startup
 client.once(Events.ClientReady, async () => {
   console.log(`mjpin bot is online as ${client.user.tag}`);
-  
-  // Signal PM2 that we're ready (if using PM2)
+
   if (process.send) {
     process.send('ready');
   }
-  
-  // Register all commands for the guild
   const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
   try {
     await rest.put(
       Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
       { body: [
-        pinCommand.data.toJSON(), 
-        promptCommand.data.toJSON(), 
-        syncCommand.data.toJSON(), 
+        pinCommand.data.toJSON(),
+        promptCommand.data.toJSON(),
+        syncCommand.data.toJSON(),
         authCommand.data.toJSON(),
         settingsCommand.data.toJSON(),
         restartCommand.data.toJSON(),
         editPromptCommand.data.toJSON(),
         modelCommand.data.toJSON(),
+        gatherCommand.data.toJSON(),
       ] }
     );
-    console.log('Registered /pin, /prompt, /sync, /auth, and /settings commands');
+    console.log('Registered /pin, /gather, /prompt, /sync, /auth, /settings, /restart, /editprompt, /model commands');
   } catch (error) {
     console.error('Error registering slash command:', error);
   }
@@ -92,7 +83,6 @@ client.once(Events.ClientReady, async () => {
 
 client.on(Events.Error, (error) => {
   console.error('Discord client error:', error);
-  // Don't crash on client errors, just log them
 });
 
 client.on(Events.Disconnect, (event) => {
@@ -107,15 +97,12 @@ client.on(Events.Resume, () => {
   console.log('Discord client resumed connection');
 });
 
-// Handle slash command interactions
 client.on(Events.InteractionCreate, async (interaction) => {
-  // Handle select menu for /editprompt section selection
   if (interaction.isStringSelectMenu() && interaction.customId === 'editprompt-section-select') {
     await editPromptCommand.handleSectionSelect(interaction);
     return;
   }
 
-  // Handle modal submissions for /editprompt
   if (interaction.type === 5 && interaction.customId.startsWith('editprompt-modal-')) {
     await editPromptCommand.handleModalSubmit(interaction);
     return;
@@ -140,11 +127,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
       await editPromptCommand.execute(interaction);
     } else if (interaction.commandName === 'model') {
       await modelCommand.execute(interaction);
+    } else if (interaction.commandName === 'gather') {
+      await gatherCommand.execute(interaction);
     }
   } catch (commandError) {
     console.error(`Error executing ${interaction.commandName} command:`, commandError);
     
-    // Try to respond to the user about the error
     try {
       const errorMessage = 'There was an error executing this command. Please try again.';
       
@@ -161,7 +149,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 });
 
-// Login with retry logic
 async function loginWithRetry(maxRetries = 3) {
   let retries = 0;
   
@@ -178,7 +165,6 @@ async function loginWithRetry(maxRetries = 3) {
         process.exit(1);
       }
       
-      // Wait before retrying (exponential backoff)
       const delay = Math.pow(2, retries) * 1000;
       console.log(`Retrying login in ${delay}ms...`);
       await new Promise(resolve => setTimeout(resolve, delay));

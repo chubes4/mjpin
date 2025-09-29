@@ -7,7 +7,6 @@ const {
   recordPin
 } = require('../utils/pinRateLimit');
 
-// Command registration data
 const data = new SlashCommandBuilder()
   .setName('pin')
   .setDescription('Pin images to a Pinterest board from message IDs')
@@ -26,7 +25,6 @@ const data = new SlashCommandBuilder()
       .setDescription('Destination URL for the pin (required)')
       .setRequired(true)
   );
-// Add up to 9 more optional message_id options (message_id_2 to message_id_10)
 for (let i = 2; i <= 10; i++) {
   data.addStringOption(option =>
     option.setName(`message_id_${i}`)
@@ -35,9 +33,8 @@ for (let i = 2; i <= 10; i++) {
   );
 }
 
-// Command handler
 async function execute(interaction) {
-  await interaction.deferReply(); // Defer the reply immediately
+  await interaction.deferReply();
 
   const board = interaction.options.getString('board');
   const url = interaction.options.getString('url');
@@ -51,21 +48,18 @@ async function execute(interaction) {
     return;
   }
 
-  // Get the active Pinterest account
   const activeAccount = await getActiveAccount(interaction.user.id);
   if (!activeAccount) {
     await interaction.editReply('You must authenticate with Pinterest first using `/auth`, then select an active account using `/settings`.');
     return;
   }
 
-  // Get boards for the active account
   const userBoards = await getBoardsForAccount(activeAccount.pinterestUserId);
   if (!userBoards || userBoards.length === 0) {
     await interaction.editReply(`No boards found for account "${activeAccount.accountName}". Please run \`/sync\` first.`);
     return;
   }
 
-  // Find board by name (case-insensitive)
   const boardObj = userBoards.find(b => b.name.toLowerCase() === board.toLowerCase());
   if (!boardObj) {
     const available = userBoards.map(b => b.name).join(', ') || 'No boards found. Run /sync first.';
@@ -74,8 +68,6 @@ async function execute(interaction) {
   }
   const boardId = boardObj.id;
 
-  // --- PIN RATE LIMIT CHECK ---
-  // Use the Pinterest account ID as the key for rate limiting
   const accountId = activeAccount.pinterestUserId;
   const now = Date.now();
   let pinCount = await getRecentPinCount(accountId, now);
@@ -87,7 +79,6 @@ async function execute(interaction) {
   const results = [];
   let pinsMade = 0;
   for (const messageId of messageIds) {
-    // Check rate limit before each pin
     pinCount = await getRecentPinCount(accountId, Date.now());
     if (pinCount >= MAX_PINS_PER_12H) {
       results.push(`Pin limit reached (${MAX_PINS_PER_12H}/12h). Skipped remaining pins.`);

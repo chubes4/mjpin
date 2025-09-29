@@ -30,8 +30,6 @@ async function execute(interaction) {
       return;
     }
     
-    // Multiple accounts - show dropdown for selection
-    // Get daily counts for all accounts in parallel
     const accountsWithCounts = await Promise.all(
       allAccounts.map(async (account) => {
         const dailyCount = await getRecentPinCount(account.pinterestUserId);
@@ -101,9 +99,7 @@ async function execute(interaction) {
       console.error('Error name:', componentError.name);
       console.error('Error message:', componentError.message);
       
-      // Check if the interaction has already been acknowledged/replied to
       if (interaction.replied || interaction.deferred) {
-        // Use followUp for already acknowledged interactions
         if (componentError.code === 'INTERACTION_COLLECTOR_ERROR' || componentError.message.includes('time')) {
           try {
             await interaction.followUp({ 

@@ -7,6 +7,9 @@ require('dotenv').config();
 
 let SYSTEM_PROMPT = '';
 
+/**
+ * Load system prompt from text files in data directory
+ */
 async function loadSystemPrompt() {
   try {
     const dataDir = path.join(__dirname, '../../data');
@@ -35,24 +38,25 @@ async function loadSystemPrompt() {
   }
 }
 
-// Initialize system prompt on module load
 loadSystemPrompt();
 
 const OPENAI_API_KEY = process.env.MJPIN_OPENAI_API_KEY;
 
-// Note: Discord requires a reply within 15 seconds. For long generations, use deferred replies.
-// No default model: guild must set a model via /model
+/**
+ * Generate AI prompt using OpenAI API with guild-specific model
+ * @param {string} input - User input for prompt generation
+ * @param {string|null} guildId - Discord guild ID for model configuration
+ * @returns {Promise<string>} Generated prompt text
+ */
 async function generatePrompt(input, guildId = null) {
   if (!OPENAI_API_KEY) {
     throw new Error('OpenAI API key not set in environment.');
   }
 
-  // Ensure system prompt is loaded
   if (!SYSTEM_PROMPT) {
     await loadSystemPrompt();
   }
 
-  // Resolve model per guild; require explicit selection
   const modelId = guildId ? await getModelForGuild(guildId) : null;
   if (!modelId) {
     throw new Error('OpenAI model is not configured for this server. Ask an admin to run /model to set it.');

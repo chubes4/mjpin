@@ -6,10 +6,14 @@ mjpin is a modular Node.js Discord bot designed to automate pinning Midjourney-g
 
 ## Features
 - **/pin**: Pin up to 10 images from Discord messages to a specified Pinterest board.
+- **/gather**: Gather message IDs for images matching a keyword after the last /pin command.
 - **/auth**: Authenticate your Pinterest account with the bot using a secure OAuth2 flow.
 - **/sync**: (Admin-only) Sync your Pinterest boards to make them available for pinning.
-- **/prompt**: Generate a Midjourney prompt using OpenAI.
+- **/prompt**: Generate a Midjourney prompt using OpenAI with per-guild model selection.
+- **/model**: (Admin-only) Choose the OpenAI model for the server from available chat-capable models.
 - **/editprompt**: (Admin-only) Edit the system prompt files used for prompt generation. Supports modular editing of individual prompt sections.
+- **/settings**: View and manage active Pinterest account and pin count status.
+- **/restart**: (Admin-only) Restart the bot process (requires PM2 deployment).
 - **Pin Rate Limiting**: Prevents API spam by limiting pins to 100 per 12-hour period per Pinterest account.
 - **Multi-Account Support**: Authenticate and use multiple Pinterest accounts.
 
@@ -57,10 +61,11 @@ All secrets and API keys are managed via the `.env` file.
 - `MJPIN_DISCORD_GUILD_ID`: The Discord server (guild) ID where you will register the slash commands.
 - `MJPIN_PINTEREST_CLIENT_ID`: Your Pinterest application's client ID.
 - `MJPIN_PINTEREST_CLIENT_SECRET`: Your Pinterest application's client secret.
-- `MJPIN_PINTEREST_REDIRECT_URI`: The OAuth redirect URI for your Pinterest app (e.g., `https://your-domain.com/src/services/pinterest-auth.php` or another callback endpoint you host that runs `src/services/pinterest-auth.php`).
+- `MJPIN_PINTEREST_REDIRECT_URI`: The OAuth redirect URI for your Pinterest app (e.g., `https://your-domain.com/pinterest/callback`). The bot includes an Express.js callback endpoint.
 - `MJPIN_OPENAI_API_KEY`: Your OpenAI API key.
-- Optional: `MJPIN_OPENAI_MODEL` (defaults to `gpt-3.5-turbo`).
 - Optional: `MJPIN_OPENAI_SYSTEM_PROMPT` (used as fallback if no `.txt` prompt files can be read from `data/`).
+
+Note: OpenAI model selection is now managed per-guild using the `/model` command rather than a global environment variable.
 
 ## Data Directory
 See `data/README.md` for complete details on:
@@ -71,33 +76,35 @@ See `data/README.md` for complete details on:
 
 ## Quick Start Guide
 1. **Have both bots in the same Discord server**
-   - Add the Midjourney bot to your server (per Midjourney’s instructions).
+   - Add the Midjourney bot to your server (per Midjourney's instructions).
    - Add your mjpin bot to the same server, with scopes `bot` and `applications.commands` and permissions to read/send messages.
 2. **Start mjpin and register commands**
    - Run the bot (`npm start` or pm2). The bot will register its slash commands in your guild automatically on startup.
-3. **Connect Pinterest**
+3. **Configure OpenAI model (Admin-only)**
+   - Run `/model` to select the OpenAI model for your server. This is required before using `/prompt`.
+4. **Connect Pinterest**
    - In Discord, run `/auth` and click the link to authorize. After approval, the callback stores your tokens.
-4. **Sync your boards**
+5. **Sync your boards**
    - Run `/sync` to pull your Pinterest boards into the bot.
-5. **Generate prompts**
+6. **Generate prompts**
    - Run `/prompt` with your idea. Copy the returned prompts.
-6. **Create images in Midjourney**
+7. **Create images in Midjourney**
    - Paste a prompt into the Midjourney bot in the same server/channel and generate images.
-7. **Get the Discord message ID(s)**
-   - In Discord, enable Developer Mode: User Settings → Advanced → Developer Mode.
-   - Right‑click the Midjourney image message → Copy Message ID.
-8. **Pin the images**
+8. **Get the Discord message ID(s)**
+   - **Option A - Manual**: In Discord, enable Developer Mode: User Settings → Advanced → Developer Mode. Right‑click the Midjourney image message → Copy Message ID.
+   - **Option B - Automated**: Use `/gather keyword` to automatically find images matching a keyword after your last `/pin` command. The bot will generate a ready-to-use `/pin` command.
+9. **Pin the images**
    - Run `/pin` and provide:
      - `board`: The exact Pinterest board name.
      - `url`: The destination URL for the pin.
-     - `message_id_1..10`: The message IDs you copied.
-9. **Manage accounts (optional)**
-   - Use `/settings` to view or switch the active Pinterest account.
+     - `message_id_1..10`: The message IDs (copied manually or from `/gather` output).
+10. **Manage accounts (optional)**
+    - Use `/settings` to view or switch the active Pinterest account.
 
 ## OAuth Flow (Pinterest)
 1. Run `/auth` in Discord. The bot replies with an authorization URL.
 2. Authorize the app. Pinterest redirects to your `MJPIN_PINTEREST_REDIRECT_URI`.
-3. The provided `src/services/pinterest-auth.php` can be deployed and used as the callback endpoint to complete the token exchange and store credentials in `data/pinterest_tokens.json`.
+3. The bot's built-in Express.js callback endpoint (`/pinterest/callback`) handles the authorization code exchange and stores credentials in `data/pinterest_tokens.json`.
 4. Run `/sync` to fetch your Pinterest boards for the authenticated account.
 5. Use `/settings` to view/switch the active Pinterest account.
 

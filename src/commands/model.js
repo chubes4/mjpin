@@ -6,23 +6,29 @@ const data = new SlashCommandBuilder()
   .setName('model')
   .setDescription('Choose the OpenAI model for this server (Manage Server only)');
 
+/**
+ * Filter models to include only chat-capable text models
+ * @param {Array} models - Array of model objects or strings
+ * @returns {Array} Filtered chat models
+ */
 function filterChatModels(models) {
-  // Heuristic: include chat-capable text models, exclude embeddings/audio/image/ft
   const deny = /(embedding|whisper|text-embedding|tts|audio|image|vision|clip|dall|ft:|omni|sprites)/i;
   const allow = /^(gpt|o[34]|gpt-4|gpt-5)/i;
   return models
   .map(m => (typeof m === 'string' ? { id: m } : { id: String(m?.id ?? '') }))
-  // Hide older GPT-3 family models explicitly
   .filter(m => m.id && !/^gpt-3/i.test(m.id))
-  // Hide any preview or transcribe variants
   .filter(m => !/preview/i.test(m.id))
   .filter(m => !/transcribe/i.test(m.id))
-  // Hide any turbo variants
   .filter(m => !/turbo/i.test(m.id))
   .filter(m => allow.test(m.id) && !deny.test(m.id))
     .sort((a, b) => a.id.localeCompare(b.id));
 }
 
+/**
+ * Fetch available models from OpenAI API
+ * @param {string} apiKey - OpenAI API key
+ * @returns {Promise<Array>} Array of model IDs
+ */
 async function fetchOpenAIModels(apiKey) {
   const resp = await axios.get('https://api.openai.com/v1/models', {
     headers: { Authorization: `Bearer ${apiKey}` },

@@ -1,7 +1,4 @@
 <?php
-// pinterest-auth.php
-
-// Load environment variables (if available)
 $client_id = getenv('MJPIN_PINTEREST_CLIENT_ID');
 $client_secret = getenv('MJPIN_PINTEREST_CLIENT_SECRET');
 $redirect_uri = getenv('MJPIN_PINTEREST_REDIRECT_URI');
@@ -15,7 +12,6 @@ if (!$code || !$state) {
     exit;
 }
 
-// Exchange code for access token
 $token_url = 'https://api.pinterest.com/v5/oauth/token';
 $data = [
     'grant_type' => 'authorization_code',
@@ -58,7 +54,6 @@ if (!$access_token) {
     exit;
 }
 
-// Get Pinterest user account info to create account name
 $user_url = 'https://api.pinterest.com/v5/user_account';
 $user_options = [
     CURLOPT_URL => $user_url,
@@ -91,15 +86,12 @@ if (!$pinterest_user_id) {
 
 $account_name = $username . ' (' . substr($pinterest_user_id, 0, 8) . ')';
 
-// Store the token in pinterest_tokens.json using new multi-account structure
 $project_root = dirname(dirname(__DIR__)); // Go up two levels from src/services to project root
 $tokens_file = $project_root . '/data/pinterest_tokens.json';
 $tokens = [];
 if (file_exists($tokens_file)) {
     $tokens = json_decode(file_get_contents($tokens_file), true) ?: [];
 }
-
-// Initialize user data if it doesn't exist
 if (!isset($tokens[$state])) {
     $tokens[$state] = [
         'accounts' => [],
@@ -107,7 +99,6 @@ if (!isset($tokens[$state])) {
     ];
 }
 
-// Add/update the Pinterest account
 $tokens[$state]['accounts'][$pinterest_user_id] = [
     'accessToken' => $access_token,
     'pinterestUserId' => $pinterest_user_id,
@@ -115,12 +106,10 @@ $tokens[$state]['accounts'][$pinterest_user_id] = [
     'createdAt' => date('c')
 ];
 
-// If this is the first account, make it active
 if ($tokens[$state]['activeAccount'] === null) {
     $tokens[$state]['activeAccount'] = $pinterest_user_id;
 }
 
-// Ensure data directory exists
 $data_dir = dirname($tokens_file);
 if (!is_dir($data_dir)) {
     mkdir($data_dir, 0755, true);
@@ -128,5 +117,4 @@ if (!is_dir($data_dir)) {
 
 file_put_contents($tokens_file, json_encode($tokens, JSON_PRETTY_PRINT));
 
-// Success message
 echo "Pinterest authentication successful! Account \"$account_name\" has been added. You can now use the bot.";

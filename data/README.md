@@ -29,11 +29,12 @@ Add ignore rules for those patterns in your `.gitignore`.
 
 ## Runtime files (do not commit)
 
-- `pinterest_tokens.json` (OAuth tokens)
-- `boards.json` (board cache)
-- `pin_counts.json` (rate-limit sliding window)
+- `pinterest_tokens.json` (OAuth tokens and multi-account data)
+- `boards.json` (Pinterest board cache per account)
+- `pin_counts.json` (rate-limit sliding window data per Pinterest account)
+- `model_settings.json` (per-guild OpenAI model selections)
 
-These are created automatically by the bot.
+These files are created automatically by the bot during operation and should not be committed to version control.
 
 ## Minimal example: instructions file
 
@@ -71,10 +72,25 @@ You can add or remove chunk files at any time.
 
 ## Editing via Discord
 
-- Use `/editprompt` (admin only) to select any `.txt` file in `data/` and edit its contents.
-- After saving, the bot reloads the system prompt automatically.
+- Use `/editprompt` (admin only) to select any `.txt` file in `data/` and edit its contents via Discord modals.
+- The command supports section-based editing to work within Discord's character limits.
+- After saving, the bot reloads the system prompt automatically for immediate effect.
+
+## Data Structure
+
+### Multi-Account Support
+- `pinterest_tokens.json` stores multiple Pinterest accounts per Discord user
+- Each Discord user can have multiple authenticated Pinterest accounts
+- Active account selection is managed per Discord user
+- Rate limiting is tracked separately per Pinterest account
+
+### Guild-Specific Settings
+- `model_settings.json` stores OpenAI model preferences per Discord server
+- Each guild (Discord server) can configure its own preferred model
+- Models must be chat-capable (not image generation models)
 
 ## Troubleshooting
 
 - If no `.txt` files can be read, the bot falls back to `MJPIN_OPENAI_SYSTEM_PROMPT` from your `.env`.
-- If private files appear in the `/editprompt` menu, that’s expected. To keep them private, rely on git ignores and avoid editing them via the UI. 
+- If private files appear in the `/editprompt` menu, that's expected. To keep them private, rely on git ignores and avoid editing them via the UI.
+- Runtime JSON files are created automatically - do not create them manually. 
