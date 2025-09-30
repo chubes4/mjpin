@@ -17,7 +17,6 @@ module.exports = {
 
             const keyword = interaction.options.getString('keyword');
             const channel = interaction.channel;
-
             const lastPinMessage = await findLastPinCommand(channel);
 
             let searchDescription = '';
@@ -30,31 +29,24 @@ module.exports = {
 
             await interaction.editReply(searchDescription);
 
-            const messageIds = await extractImageMessageIds(
-                channel,
-                keyword,
-                lastPinMessage,
-                10
-            );
+            const messageIds = await extractImageMessageIds(channel, keyword, lastPinMessage, 10);
 
             if (messageIds.length === 0) {
                 await interaction.editReply(`No images found matching "${keyword}".`);
                 return;
             }
 
-            const pinCommandParts = ['/pin'];
+            const pinCommandParts = ['/pin', `board:${keyword}`];
             messageIds.forEach((id, index) => {
                 pinCommandParts.push(`message_id_${index + 1}:${id}`);
             });
             const pinCommand = pinCommandParts.join(' ');
-
             const response = `Found ${messageIds.length} matching image${messageIds.length === 1 ? '' : 's'} for "${keyword}":\n\n\`\`\`${pinCommand}\`\`\``;
 
             await interaction.editReply(response);
 
         } catch (error) {
             console.error('Error in gather command:', error);
-
             const errorMessage = 'An error occurred while gathering images. Please try again.';
 
             if (interaction.deferred) {
