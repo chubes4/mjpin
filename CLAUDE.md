@@ -30,7 +30,7 @@ mjpin is a modular Node.js Discord bot that automates pinning Midjourney-generat
 
 ### Workflow Commands
 - **/pin**: Pin 1-10 images from Discord message IDs to Pinterest boards with rate limiting
-- **/gather**: Search channel history for keyword-matching images and generate `/pin` command
+- **/gather**: Search channel history for keyword-matching images after last `/pin` command, generate ready-to-use `/pin` command with message IDs
 - **/prompt**: Generate Midjourney prompts using OpenAI with per-guild model selection
 
 ### Account Management Commands
@@ -39,21 +39,22 @@ mjpin is a modular Node.js Discord bot that automates pinning Midjourney-generat
 - **/settings**: View/switch active Pinterest account and check pin count status
 
 ### Admin Commands
-- **/model**: Select OpenAI model for the server from available chat-capable models
-- **/editprompt**: Edit system prompt `.txt` files via Discord modals with section selection
-- **/restart**: Restart bot process (admin-only, requires PM2 deployment)
+- **/model**: Select OpenAI model for the server from available chat-capable models (requires Manage Server permission)
+- **/editprompt**: Edit system prompt `.txt` files via Discord modals with section selection (requires Administrator permission)
+- **/restart**: Restart bot process via PM2 with post-restart message confirmation (requires Administrator permission)
 
 ## External Integrations
 
 ### Pinterest API v5 Integration
-- **OAuth2 Flow**: Express.js callback endpoint handles authorization code exchange
+- **OAuth2 Flow**: Built-in Express.js server with `/pinterest/callback` endpoint handles authorization code exchange
 - **Multi-Account Support**: Multiple Pinterest accounts per Discord user with account switching
 - **Board Management**: Cached board data per Pinterest account with sync capability
 - **Rate Limiting**: 100 pins per 12-hour sliding window per Pinterest account
 
 ### OpenAI API Integration
-- **Per-Guild Model Selection**: Each Discord server configures preferred chat model
-- **Modular Prompt Assembly**: System prompts built from concatenated `.txt` files in `data/`
+- **Per-Guild Model Selection**: Each Discord server configures preferred chat model via `/model` command from available chat-capable models
+- **Model Filtering**: Automatically excludes embedding, whisper, audio, image, vision, and TTS models
+- **Modular Prompt Assembly**: System prompts built from concatenated `.txt` files in `data/` (user-created, not included in repo)
 - **Fallback System**: Environment variable fallback when no prompt files available
 - **Dynamic Prompt Reloading**: System prompt reloads automatically after `/editprompt` changes
 
@@ -67,11 +68,12 @@ mjpin is a modular Node.js Discord bot that automates pinning Midjourney-generat
 ### File-Based Persistence
 ```
 data/
-├── *.txt                    # System prompt chunks (auto-loaded, order by numeric prefix)
+├── *.txt                    # System prompt chunks (user-created, auto-loaded, order by numeric prefix)
 ├── pinterest_tokens.json    # Multi-account Pinterest OAuth tokens per Discord user
 ├── boards.json             # Cached Pinterest boards per Pinterest account
 ├── pin_counts.json         # Sliding window rate limit data per Pinterest account
-└── model_settings.json     # OpenAI model selection per Discord guild
+├── model_settings.json     # OpenAI model selection per Discord guild
+└── restart_info.json       # Temporary restart state for post-restart message updates
 ```
 
 ### Account Management Schema
@@ -97,6 +99,14 @@ MJPIN_OPENAI_SYSTEM_PROMPT   # Fallback prompt (optional)
 - **Development**: `npm start` with nodemon for hot reloading
 - **Production**: PM2 process manager with graceful shutdown handling
 - **OAuth Callback**: Requires publicly accessible endpoint for Pinterest authorization
+
+### Build System
+- **Production Build**: `./build.sh` creates `mjpin-production.tar.gz` archive (no compilation needed - pure Node.js)
+- **Build Output**: Production-ready tarball with npm dependencies and source code
+- **File Exclusions**: Excludes `.git/`, `node_modules/`, `.env`, and development files
+- **Critical Data Preservation**: Server's `data/` directory must be preserved during deployment (contains tokens, boards, pin counts, model settings)
+- **Deployment Process**: Upload tarball to server, extract, run `npm install --production`, restart PM2 process
+- **No Compilation**: Project uses pure Node.js with no build/transpilation steps
 
 ## Security Implementations
 
@@ -131,13 +141,22 @@ MJPIN_OPENAI_SYSTEM_PROMPT   # Fallback prompt (optional)
 4. Update console log message with new command name
 
 ### Modifying System Prompts
-- Use `/editprompt` command in Discord for live editing
-- Add new `.txt` files to `data/` directory (auto-loaded on restart)
+- Use `/editprompt` command in Discord for live editing (admin-only)
+- Create `.txt` files in `data/` directory (user-created, auto-loaded on restart)
 - Use numeric prefixes for loading order (00_, 10_, 20_, etc.)
+- System prompts are not included in repository - users must create their own
 
 ### Pinterest Integration Changes
 - Pinterest API v5 endpoints and schemas
+- OAuth callback handled by Express.js server in `pinterest.js` (no PHP required)
 - Account data stored in `pinterest_tokens.json` with multi-account support
 - Board caching in `boards.json` per Pinterest account ID
+
+### Message Search Utilities
+- `messageSearch.js` provides comprehensive channel history search capabilities
+- Keyword variant generation (automatic singular/plural support)
+- Image detection across attachments, embeds, and Midjourney patterns
+- Pagination support for searching beyond Discord's 100-message limit
+- Integration with `/gather` command for automated message ID extraction
 
 This architecture enables reliable, scalable Discord bot operations with comprehensive error handling and multi-user account management.

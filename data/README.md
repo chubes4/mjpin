@@ -1,10 +1,11 @@
 # mjpin Data Directory
 
-This folder contains the prompt source files and runtime state for the bot.
+This folder contains user-created prompt source files and runtime state for the bot.
 
 - All `.txt` files directly in `data/` are concatenated (with a blank line between each) to form the system prompt used by the bot at startup.
 - Admins can edit any `.txt` file via the `/editprompt` command in Discord.
-- Runtime JSON state (tokens, boards, rate limits) is also stored here and should not be committed.
+- Runtime JSON state (tokens, boards, rate limits, model settings) is stored here and should not be committed.
+- **Note:** This repository does not include prompt `.txt` files. Users must create their own.
 
 ## What gets loaded into the system prompt
 
@@ -33,6 +34,7 @@ Add ignore rules for those patterns in your `.gitignore`.
 - `boards.json` (Pinterest board cache per account)
 - `pin_counts.json` (rate-limit sliding window data per Pinterest account)
 - `model_settings.json` (per-guild OpenAI model selections)
+- `restart_info.json` (temporary restart state for post-restart message updates)
 
 These files are created automatically by the bot during operation and should not be committed to version control.
 
@@ -86,8 +88,14 @@ You can add or remove chunk files at any time.
 
 ### Guild-Specific Settings
 - `model_settings.json` stores OpenAI model preferences per Discord server
-- Each guild (Discord server) can configure its own preferred model
-- Models must be chat-capable (not image generation models)
+- Each guild (Discord server) can configure its own preferred model via `/model` command
+- Models must be chat-capable (automatically filters out embedding, whisper, audio, image, vision, and TTS models)
+- Model selection is required before using `/prompt` command
+
+### Restart State Management
+- `restart_info.json` temporarily stores channel and message IDs during bot restarts
+- Enables post-restart message confirmation ("Restart successful.")
+- Automatically deleted after successful message update
 
 ## Troubleshooting
 

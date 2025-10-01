@@ -6,23 +6,23 @@ mjpin is a modular Node.js Discord bot designed to automate pinning Midjourney-g
 
 ## Features
 - **/pin**: Pin up to 10 images from Discord messages to a specified Pinterest board.
-- **/gather**: Gather message IDs for images matching a keyword after the last /pin command.
+- **/gather**: Search channel history for keyword-matching images after the last `/pin` command and generate a ready-to-use `/pin` command with message IDs.
 - **/auth**: Authenticate your Pinterest account with the bot using a secure OAuth2 flow.
-- **/sync**: (Admin-only) Sync your Pinterest boards to make them available for pinning.
+- **/sync**: Sync your Pinterest boards to make them available for pinning.
 - **/prompt**: Generate a Midjourney prompt using OpenAI with per-guild model selection.
-- **/model**: (Admin-only) Choose the OpenAI model for the server from available chat-capable models.
-- **/editprompt**: (Admin-only) Edit the system prompt files used for prompt generation. Supports modular editing of individual prompt sections.
+- **/model**: (Requires Manage Server) Choose the OpenAI model for the server from available chat-capable models.
+- **/editprompt**: (Requires Administrator) Edit the system prompt files used for prompt generation. Supports modular editing of individual prompt sections.
 - **/settings**: View and manage active Pinterest account and pin count status.
-- **/restart**: (Admin-only) Restart the bot process (requires PM2 deployment).
+- **/restart**: (Requires Administrator) Restart the bot process (requires PM2 deployment).
 - **Pin Rate Limiting**: Prevents API spam by limiting pins to 100 per 12-hour period per Pinterest account.
 - **Multi-Account Support**: Authenticate and use multiple Pinterest accounts.
 
 ## Project Structure
-- `src/index.js`: The main entry point for the bot.
-- `src/commands/`: Contains all the slash command handlers.
-- `src/services/`: Houses integration logic for third-party APIs like Pinterest and OpenAI.
-- `src/utils/`: Includes utility functions, such as the pin rate limiter.
-- `data/`: Contains modular prompt files used for generating Midjourney prompts. Any `.txt` file in this directory will be automatically included in the system prompt.
+- `src/index.js`: The main entry point for the bot with centralized command registration and interaction handling.
+- `src/commands/`: Contains all the slash command handlers (pin, gather, prompt, model, auth, sync, settings, editprompt, restart).
+- `src/services/`: Houses integration logic for third-party APIs (pinterest.js, openai.js, modelSettings.js).
+- `src/utils/`: Includes utility functions (jsonFileManager.js, pinRateLimit.js, messageSearch.js).
+- `data/`: Contains user-created modular prompt `.txt` files. Any `.txt` file in this directory will be automatically included in the system prompt.
 
 ## Getting Started
 1. **Clone the repository:**
@@ -65,7 +65,7 @@ All secrets and API keys are managed via the `.env` file.
 - `MJPIN_OPENAI_API_KEY`: Your OpenAI API key.
 - Optional: `MJPIN_OPENAI_SYSTEM_PROMPT` (used as fallback if no `.txt` prompt files can be read from `data/`).
 
-Note: OpenAI model selection is now managed per-guild using the `/model` command rather than a global environment variable.
+**Note:** OpenAI model selection is managed per-guild using the `/model` command. Each Discord server configures its preferred chat-capable model independently.
 
 ## Data Directory
 See `data/README.md` for complete details on:
@@ -81,9 +81,9 @@ See `data/README.md` for complete details on:
 2. **Start mjpin and register commands**
    - Run the bot (`npm start` or pm2). The bot will register its slash commands in your guild automatically on startup.
 3. **Configure OpenAI model (Admin-only)**
-   - Run `/model` to select the OpenAI model for your server. This is required before using `/prompt`.
+   - Run `/model` to select the OpenAI model for your server from available chat-capable models. This is required before using `/prompt`.
 4. **Connect Pinterest**
-   - In Discord, run `/auth` and click the link to authorize. After approval, the callback stores your tokens.
+   - In Discord, run `/auth` and click the link to authorize. After approval, the built-in Express.js callback endpoint stores your tokens.
 5. **Sync your boards**
    - Run `/sync` to pull your Pinterest boards into the bot.
 6. **Generate prompts**
@@ -91,8 +91,8 @@ See `data/README.md` for complete details on:
 7. **Create images in Midjourney**
    - Paste a prompt into the Midjourney bot in the same server/channel and generate images.
 8. **Get the Discord message ID(s)**
-   - **Option A - Manual**: In Discord, enable Developer Mode: User Settings → Advanced → Developer Mode. Right‑click the Midjourney image message → Copy Message ID.
-   - **Option B - Automated**: Use `/gather keyword` to automatically find images matching a keyword after your last `/pin` command. The bot will generate a ready-to-use `/pin` command.
+   - **Automated**: Use `/gather keyword` to find images matching a keyword after your last `/pin` command. The bot generates a ready-to-use `/pin` command with message IDs.
+   - **Manual**: Enable Developer Mode (User Settings → Advanced), right-click the Midjourney image message → Copy Message ID.
 9. **Pin the images**
    - Run `/pin` and provide:
      - `board`: The exact Pinterest board name.
@@ -104,9 +104,9 @@ See `data/README.md` for complete details on:
 ## OAuth Flow (Pinterest)
 1. Run `/auth` in Discord. The bot replies with an authorization URL.
 2. Authorize the app. Pinterest redirects to your `MJPIN_PINTEREST_REDIRECT_URI`.
-3. The bot's built-in Express.js callback endpoint (`/pinterest/callback`) handles the authorization code exchange and stores credentials in `data/pinterest_tokens.json`.
+3. The bot's built-in Express.js server handles the `/pinterest/callback` endpoint for authorization code exchange and stores credentials in `data/pinterest_tokens.json`.
 4. Run `/sync` to fetch your Pinterest boards for the authenticated account.
-5. Use `/settings` to view/switch the active Pinterest account.
+5. Use `/settings` to view/switch the active Pinterest account if you have multiple accounts.
 
 ## Contributing
 Contributions are welcome. Please adhere to the existing code structure and principles of modularity and security.

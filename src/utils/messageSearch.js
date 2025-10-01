@@ -2,20 +2,33 @@
  * Message search utilities for gathering Discord messages with keyword filtering
  */
 
-/**
- * Find the most recent /pin command in channel history
- * @param {Object} channel - Discord channel object
- * @param {number} limit - Maximum messages to search (default: 500)
- * @returns {Object|null} - Message object of last /pin command or null
- */
-async function findLastPinCommand(channel, limit = 500) {
+async function findLastPinCommand(channel, maxMessages = 500) {
     try {
-        const messages = await channel.messages.fetch({ limit });
+        let lastId = null;
+        const batchSize = 100;
+        let fetchedCount = 0;
 
-        for (const message of messages.values()) {
-            if (message.content && message.content.includes('/pin')) {
-                return message;
+        while (fetchedCount < maxMessages) {
+            const fetchOptions = {
+                limit: Math.min(batchSize, maxMessages - fetchedCount)
+            };
+            if (lastId) {
+                fetchOptions.before = lastId;
             }
+
+            const messages = await channel.messages.fetch(fetchOptions);
+            if (messages.size === 0) break;
+
+            for (const message of messages.values()) {
+                if (message.interaction?.commandName === 'pin') {
+                    return message;
+                }
+            }
+
+            lastId = messages.last().id;
+            fetchedCount += messages.size;
+
+            await new Promise(resolve => setTimeout(resolve, 100));
         }
 
         return null;
@@ -25,13 +38,6 @@ async function findLastPinCommand(channel, limit = 500) {
     }
 }
 
-/**
- * Search for messages after a specific timestamp with pagination
- * @param {Object} channel - Discord channel object
- * @param {string} afterMessageId - Message ID to search after
- * @param {number} maxMessages - Maximum messages to fetch (default: 1000)
- * @returns {Array} - Array of message objects
- */
 async function searchMessagesAfter(channel, afterMessageId, maxMessages = 1000) {
     const messages = [];
     let lastId = afterMessageId;
@@ -59,11 +65,6 @@ async function searchMessagesAfter(channel, afterMessageId, maxMessages = 1000) 
     }
 }
 
-/**
- * Generate keyword variants (singular/plural)
- * @param {string} keyword - Base keyword
- * @returns {Array} - Array of keyword variants
- */
 function generateKeywordVariants(keyword) {
     const variants = [keyword.toLowerCase()];
 
@@ -78,12 +79,6 @@ function generateKeywordVariants(keyword) {
     return variants;
 }
 
-/**
- * Check if message content matches any keyword variants
- * @param {Object} message - Discord message object
- * @param {Array} keywordVariants - Array of keyword variants to match
- * @returns {boolean} - True if message matches any keyword
- */
 function messageMatchesKeywords(message, keywordVariants) {
     const searchContent = [];
 
@@ -117,12 +112,12 @@ function messageMatchesKeywords(message, keywordVariants) {
     );
 }
 
-/**
- * Check if message has images (attachments or embeds)
- * @param {Object} message - Discord message object
- * @returns {boolean} - True if message contains images
- */
 function messageHasImages(message) {
+    // Only Midjourney upscaled images (contain "- Image #"), excludes 4-image grids
+    if (!message.content || !message.content.includes('- Image #')) {
+        return false;
+    }
+
     if (message.attachments && message.attachments.size > 0) {
         for (const attachment of message.attachments.values()) {
             if (attachment.contentType && attachment.contentType.startsWith('image/')) {
@@ -142,14 +137,6 @@ function messageHasImages(message) {
     return false;
 }
 
-/**
- * Extract message IDs from messages that match keyword and contain images
- * @param {Object} channel - Discord channel object
- * @param {string} keyword - Keyword to search for
- * @param {Object|null} afterMessage - Message to search after (null to search all recent)
- * @param {number} maxResults - Maximum results to return (default: 10)
- * @returns {Array} - Array of message IDs
- */
 async function extractImageMessageIds(channel, keyword, afterMessage = null, maxResults = 10) {
     try {
         const keywordVariants = generateKeywordVariants(keyword);
@@ -158,7 +145,7 @@ async function extractImageMessageIds(channel, keyword, afterMessage = null, max
         if (afterMessage) {
             messages = await searchMessagesAfter(channel, afterMessage.id);
         } else {
-            const recentMessages = await channel.messages.fetch({ limit: 500 });
+            const recentMessages = await channel.messages.fetch({ limit: 100 });
             messages = Array.from(recentMessages.values());
         }
 

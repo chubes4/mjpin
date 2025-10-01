@@ -65,39 +65,30 @@ async function execute(interaction) {
     });
     
     try {
-      console.log('Settings: Waiting for component interaction...');
-      const confirmation = await reply.awaitMessageComponent({ 
-        filter: i => i.user.id === interaction.user.id && i.customId === 'select_active_pinterest_account', 
-        time: 60000, 
+      const confirmation = await reply.awaitMessageComponent({
+        filter: i => i.user.id === interaction.user.id && i.customId === 'select_active_pinterest_account',
+        time: 60000,
         componentType: ComponentType.StringSelect,
       });
-      
-      console.log('Settings: Component interaction received, processing...');
+
       const selectedPinterestUserId = confirmation.values[0];
-      console.log(`Settings: Selected Pinterest user ID: ${selectedPinterestUserId}`);
-      
       const success = await setActiveAccount(discordUserId, selectedPinterestUserId);
-      console.log(`Settings: setActiveAccount result: ${success}`);
-      
+
       if (success) {
         const selectedAccount = allAccounts.find(acc => acc.pinterestUserId === selectedPinterestUserId);
-        console.log(`Settings: Switching to account: ${selectedAccount?.accountName}`);
-        await confirmation.update({ 
-          content: `✅ **Account switched successfully!**\n\nYour active Pinterest account is now: **${selectedAccount.accountName}**\n\nAll \`/pin\` and \`/sync\` commands will now use this account.`, 
-          components: [] 
+        await confirmation.update({
+          content: `✅ **Account switched successfully!**\n\nYour active Pinterest account is now: **${selectedAccount.accountName}**\n\nAll \`/pin\` and \`/sync\` commands will now use this account.`,
+          components: []
         });
       } else {
-        console.log('Settings: setActiveAccount returned false');
-        await confirmation.update({ 
-          content: '❌ Failed to switch accounts. Please try again.', 
-          components: [] 
+        await confirmation.update({
+          content: '❌ Failed to switch accounts. Please try again.',
+          components: []
         });
       }
-      
+
     } catch (componentError) {
       console.error('Settings component interaction error:', componentError);
-      console.error('Error name:', componentError.name);
-      console.error('Error message:', componentError.message);
       
       if (interaction.replied || interaction.deferred) {
         if (componentError.code === 'INTERACTION_COLLECTOR_ERROR' || componentError.message.includes('time')) {

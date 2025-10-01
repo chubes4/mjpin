@@ -13,14 +13,13 @@ const data = new SlashCommandBuilder()
 async function execute(interaction) {
   const input = interaction.options.getString('input');
   try {
-  await interaction.deferReply();
-  const result = await generatePrompt(input, interaction.guildId);
+    await interaction.deferReply();
+    const result = await generatePrompt(input, interaction.guildId);
     const MAX_DISCORD_MESSAGE_LENGTH = 2000;
     const safeResult = result.length > MAX_DISCORD_MESSAGE_LENGTH
       ? result.slice(0, MAX_DISCORD_MESSAGE_LENGTH - 3) + '...'
       : result;
     await interaction.editReply(safeResult);
-    return;
   } catch (err) {
     try {
       if (!interaction.replied && !interaction.deferred) {

@@ -1,5 +1,7 @@
+/**
+ * OpenAI service with per-guild model selection and modular prompt system
+ */
 const axios = require('axios');
-const { readTextFile } = require('../utils/jsonFileManager');
 const { getModelForGuild } = require('./modelSettings');
 const fs = require('fs').promises;
 const path = require('path');
@@ -7,15 +9,12 @@ require('dotenv').config();
 
 let SYSTEM_PROMPT = '';
 
-/**
- * Load system prompt from text files in data directory
- */
 async function loadSystemPrompt() {
   try {
     const dataDir = path.join(__dirname, '../../data');
     const files = await fs.readdir(dataDir);
     const txtFiles = files.filter(file => file.endsWith('.txt'));
-    
+
     const prompts = await Promise.all(
       txtFiles.map(file => {
         const filePath = path.join(dataDir, file);
@@ -31,7 +30,7 @@ async function loadSystemPrompt() {
     if (!SYSTEM_PROMPT) {
       throw new Error('No prompt files could be read and no fallback was set.');
     }
-    
+
   } catch (err) {
     console.warn('Could not load system prompt files:', err);
     SYSTEM_PROMPT = process.env.MJPIN_OPENAI_SYSTEM_PROMPT || 'You are a helpful AI that generates Midjourney prompts.';
@@ -42,12 +41,6 @@ loadSystemPrompt();
 
 const OPENAI_API_KEY = process.env.MJPIN_OPENAI_API_KEY;
 
-/**
- * Generate AI prompt using OpenAI API with guild-specific model
- * @param {string} input - User input for prompt generation
- * @param {string|null} guildId - Discord guild ID for model configuration
- * @returns {Promise<string>} Generated prompt text
- */
 async function generatePrompt(input, guildId = null) {
   if (!OPENAI_API_KEY) {
     throw new Error('OpenAI API key not set in environment.');

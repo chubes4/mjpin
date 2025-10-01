@@ -1,4 +1,6 @@
 const { SlashCommandBuilder, PermissionsBitField } = require('discord.js');
+const fs = require('fs');
+const path = require('path');
 
 const data = new SlashCommandBuilder()
   .setName('restart')
@@ -9,8 +11,19 @@ async function execute(interaction) {
     await interaction.reply({ content: 'You must be a server admin to restart the bot.', ephemeral: true });
     return;
   }
-  await interaction.reply('Restarting bot...');
-  process.exit(0);
+
+  const reply = await interaction.reply({ content: 'Restarting bot...', fetchReply: true });
+
+  const restartInfo = {
+    channelId: interaction.channelId,
+    messageId: reply.id,
+    timestamp: Date.now()
+  };
+
+  const restartFilePath = path.join(__dirname, '../../data/restart_info.json');
+  fs.writeFileSync(restartFilePath, JSON.stringify(restartInfo, null, 2));
+
+  setTimeout(() => process.exit(0), 500);
 }
 
 module.exports = { data, execute }; 

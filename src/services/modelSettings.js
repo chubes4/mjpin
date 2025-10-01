@@ -1,3 +1,6 @@
+/**
+ * Per-guild OpenAI model selection storage
+ */
 const { readJsonFile, writeJsonFile } = require('../utils/jsonFileManager');
 
 const STORE_FILE = 'model_settings.json';

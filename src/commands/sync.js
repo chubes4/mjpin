@@ -9,7 +9,6 @@ const data = new SlashCommandBuilder()
 
 async function execute(interaction) {
   await interaction.deferReply({ ephemeral: true });
-  console.log('SYNC COMMAND EXECUTED');
   if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
     await interaction.editReply({ content: 'You do not have permission to use this command.', ephemeral: true });
     return;

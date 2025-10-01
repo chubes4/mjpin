@@ -1,13 +1,11 @@
+/**
+ * File-based persistence for JSON and text data in data/ directory
+ */
 const fs = require('fs').promises;
 const path = require('path');
 
 const dataDir = path.join(__dirname, '../../data');
 
-/**
- * Read and parse JSON file from data directory
- * @param {string} filename - JSON filename
- * @returns {Promise<Object>} Parsed JSON data or empty object if file not found
- */
 async function readJsonFile(filename) {
     const filePath = path.join(dataDir, filename);
     try {
@@ -22,11 +20,6 @@ async function readJsonFile(filename) {
     }
 }
 
-/**
- * Write data to JSON file in data directory
- * @param {string} filename - JSON filename
- * @param {Object} data - Data to write
- */
 async function writeJsonFile(filename, data) {
     const filePath = path.join(dataDir, filename);
     try {
@@ -38,11 +31,6 @@ async function writeJsonFile(filename, data) {
     }
 }
 
-/**
- * Read text file from data directory
- * @param {string} filename - Text filename
- * @returns {Promise<string|null>} File content or null if not found
- */
 async function readTextFile(filename) {
     const filePath = path.join(dataDir, filename);
     try {

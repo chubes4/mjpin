@@ -9,6 +9,11 @@ module.exports = {
             option.setName('keyword')
                 .setDescription('Keyword to search for in image messages (automatically includes plural/singular)')
                 .setRequired(true)
+        )
+        .addStringOption(option =>
+            option.setName('url')
+                .setDescription('Optional destination URL for the pins')
+                .setRequired(false)
         ),
 
     async execute(interaction) {
@@ -16,6 +21,7 @@ module.exports = {
             await interaction.deferReply();
 
             const keyword = interaction.options.getString('keyword');
+            const url = interaction.options.getString('url');
             const channel = interaction.channel;
             const lastPinMessage = await findLastPinCommand(channel);
 
@@ -37,6 +43,9 @@ module.exports = {
             }
 
             const pinCommandParts = ['/pin', `board:${keyword}`];
+            if (url) {
+                pinCommandParts.push(`url:${url}`);
+            }
             messageIds.forEach((id, index) => {
                 pinCommandParts.push(`message_id_${index + 1}:${id}`);
             });

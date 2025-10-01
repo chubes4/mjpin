@@ -1,5 +1,10 @@
+/**
+ * mjpin Discord bot - main entry point with command registration and interaction handling
+ */
 require('dotenv').config();
 const { Client, GatewayIntentBits, Events, Collection, REST, Routes } = require('discord.js');
+const fs = require('fs');
+const path = require('path');
 const pinCommand = require('./commands/pin');
 const promptCommand = require('./commands/prompt');
 const syncCommand = require('./commands/sync');
@@ -59,6 +64,26 @@ client.once(Events.ClientReady, async () => {
   if (process.send) {
     process.send('ready');
   }
+
+  const restartFilePath = path.join(__dirname, '../data/restart_info.json');
+  if (fs.existsSync(restartFilePath)) {
+    try {
+      const restartInfo = JSON.parse(fs.readFileSync(restartFilePath, 'utf8'));
+      const channel = await client.channels.fetch(restartInfo.channelId);
+      const message = await channel.messages.fetch(restartInfo.messageId);
+      await message.edit('Restart successful.');
+      fs.unlinkSync(restartFilePath);
+      console.log('Updated restart message successfully');
+    } catch (error) {
+      console.error('Error updating restart message:', error);
+      try {
+        fs.unlinkSync(restartFilePath);
+      } catch (unlinkError) {
+        console.error('Error cleaning up restart file:', unlinkError);
+      }
+    }
+  }
+
   const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
   try {
     await rest.put(
