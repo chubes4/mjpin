@@ -20,7 +20,8 @@ async function findLastPinCommand(channel, maxMessages = 500) {
             if (messages.size === 0) break;
 
             for (const message of messages.values()) {
-                if (message.interaction?.commandName === 'pin') {
+                // Look for pin commands that resulted in successful pins
+                if (message.interaction?.commandName === 'pin' && message.content && message.content.includes('Pinned successfully')) {
                     return message;
                 }
             }

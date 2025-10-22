@@ -1,0 +1,37 @@
+# Development dependencies
+node_modules/
+package-lock.json
+
+# Git and version control
+.git/
+.github/
+
+# Development and local data files
+data/
+
+# Logs and runtime files
+logs/
+*.log
+
+# IDE and system files
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build and deployment files
+build/
+dist/
+*.zip
+*.tar.gz
+.buildignore
+build.sh
+deploy.sh
+
+# Environment files (should be configured separately on server)
+.env
+
+# Documentation (not needed in production)
+README.md
+docs/

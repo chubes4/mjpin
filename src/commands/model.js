@@ -6,6 +6,13 @@ const data = new SlashCommandBuilder()
   .setName('model')
   .setDescription('Choose the OpenAI model for this server (Manage Server only)');
 
+/**
+ * Filters OpenAI models to only chat-capable models by excluding:
+ * - embedding/vision/audio/image models
+ * - GPT-3.x models (outdated)
+ * - preview/turbo/transcribe variants (unstable or deprecated)
+ * Allows only GPT-4+, o3, o4 models suitable for chat completion
+ */
 function filterChatModels(models) {
   const deny = /(embedding|whisper|text-embedding|tts|audio|image|vision|clip|dall|ft:|omni|sprites)/i;
   const allow = /^(gpt|o[34]|gpt-4|gpt-5)/i;

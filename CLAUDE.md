@@ -11,7 +11,7 @@ mjpin is a modular Node.js Discord bot that automates pinning Midjourney-generat
 ### Modular Command Structure
 - **Command Registration**: All commands auto-register via `src/index.js` with centralized error handling
 - **Slash Command Pattern**: Each command in `src/commands/` exports `data` (SlashCommandBuilder) and `execute` function
-- **Service Layer Separation**: External API integrations isolated in `src/services/` (pinterest.js, openai.js, modelSettings.js)
+- **Service Layer Separation**: External API integrations isolated in `src/services/` (pinterest.js, openai.js, modelSettings.js, pinterest-auth.php)
 - **Utility Layer**: Common functionality in `src/utils/` (jsonFileManager.js, pinRateLimit.js, messageSearch.js)
 
 ### Data Management Architecture
@@ -29,8 +29,7 @@ mjpin is a modular Node.js Discord bot that automates pinning Midjourney-generat
 ## Core Commands Implementation
 
 ### Workflow Commands
-- **/pin**: Pin 1-10 images from Discord message IDs to Pinterest boards with rate limiting
-- **/gather**: Search channel history for keyword-matching images after last `/pin` command, generate ready-to-use `/pin` command with message IDs
+- **/pin**: Pin 1-10 images to Pinterest boards - either by keyword search (automatically gathers images) or by providing Discord message IDs directly. Rate limited to 100 pins per 12 hours per Pinterest account.
 - **/prompt**: Generate Midjourney prompts using OpenAI with per-guild model selection
 
 ### Account Management Commands
@@ -46,7 +45,7 @@ mjpin is a modular Node.js Discord bot that automates pinning Midjourney-generat
 ## External Integrations
 
 ### Pinterest API v5 Integration
-- **OAuth2 Flow**: Built-in Express.js server with `/pinterest/callback` endpoint handles authorization code exchange
+- **OAuth2 Flow**: Built-in Express.js server with `/pinterest/callback` endpoint handles authorization code exchange (Node.js implementation); PHP alternative available in `pinterest-auth.php`
 - **Multi-Account Support**: Multiple Pinterest accounts per Discord user with account switching
 - **Board Management**: Cached board data per Pinterest account with sync capability
 - **Rate Limiting**: 100 pins per 12-hour sliding window per Pinterest account
@@ -101,11 +100,11 @@ MJPIN_OPENAI_SYSTEM_PROMPT   # Fallback prompt (optional)
 - **OAuth Callback**: Requires publicly accessible endpoint for Pinterest authorization
 
 ### Build System
-- **Production Build**: `./build.sh` creates `mjpin-production.tar.gz` archive (no compilation needed - pure Node.js)
-- **Build Output**: Production-ready tarball with npm dependencies and source code
-- **File Exclusions**: Excludes `.git/`, `node_modules/`, `.env`, and development files
+- **No Build Process**: Pure Node.js project with no compilation or build steps required
+- **Production Deployment**: Deploy source code directly with `npm install --production`
+- **File Exclusions**: Excludes `.git/`, `node_modules/`, `.env`, and development files during manual deployment
 - **Critical Data Preservation**: Server's `data/` directory must be preserved during deployment (contains tokens, boards, pin counts, model settings)
-- **Deployment Process**: Upload tarball to server, extract, run `npm install --production`, restart PM2 process
+- **Deployment Process**: Upload source code to server, run `npm install --production`, restart PM2 process
 - **No Compilation**: Project uses pure Node.js with no build/transpilation steps
 
 ## Security Implementations
@@ -136,9 +135,10 @@ MJPIN_OPENAI_SYSTEM_PROMPT   # Fallback prompt (optional)
 
 ### Adding New Commands
 1. Create command file in `src/commands/` with data/execute exports
-2. Import and register in `src/index.js` commands array
-3. Add interaction handling in main interaction event listener
-4. Update console log message with new command name
+2. Import command in `src/index.js`
+3. Add command to REST.put() body array for registration
+4. Add interaction handling in main interaction event listener
+5. Update hardcoded console log message in ClientReady event
 
 ### Modifying System Prompts
 - Use `/editprompt` command in Discord for live editing (admin-only)
@@ -157,6 +157,6 @@ MJPIN_OPENAI_SYSTEM_PROMPT   # Fallback prompt (optional)
 - Keyword variant generation (automatic singular/plural support)
 - Image detection across attachments, embeds, and Midjourney patterns
 - Pagination support for searching beyond Discord's 100-message limit
-- Integration with `/gather` command for automated message ID extraction
+- Integration with `/pin` command's keyword search for automated message ID extraction
 
 This architecture enables reliable, scalable Discord bot operations with comprehensive error handling and multi-user account management.

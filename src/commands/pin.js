@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { pinImageToBoard, getActiveAccount, getBoardsForAccount } = require('../services/pinterest');
+const { extractImageMessageIds, findLastPinCommand } = require('../utils/messageSearch');
 const path = require('path');
 const {
   MAX_PINS_PER_12H,
@@ -9,44 +10,48 @@ const {
 
 const data = new SlashCommandBuilder()
   .setName('pin')
-  .setDescription('Pin images to a Pinterest board from message IDs')
+  .setDescription('Pin images to Pinterest using keyword search')
   .addStringOption(option =>
-    option.setName('board')
-      .setDescription('Pinterest board name.')
-      .setRequired(true)
-  )
-  .addStringOption(option =>
-    option.setName('message_id_1')
-      .setDescription('Discord message ID #1')
+    option.setName('keyword')
+      .setDescription('Keyword to search for images and use as board name')
       .setRequired(true)
   )
   .addStringOption(option =>
     option.setName('url')
-      .setDescription('Destination URL for the pin (required)')
+      .setDescription('Destination URL for the pin')
       .setRequired(true)
   );
-for (let i = 2; i <= 10; i++) {
-  data.addStringOption(option =>
-    option.setName(`message_id_${i}`)
-      .setDescription(`Discord message ID #${i}`)
-      .setRequired(false)
-  );
-}
 
 async function execute(interaction) {
   await interaction.deferReply();
 
-  const board = interaction.options.getString('board');
+  const keyword = interaction.options.getString('keyword');
   const url = interaction.options.getString('url');
-  const messageIds = [];
-  for (let i = 1; i <= 10; i++) {
-    const id = interaction.options.getString(`message_id_${i}`);
-    if (id) messageIds.push(id);
+
+  const channel = interaction.channel;
+  const lastPinMessage = await findLastPinCommand(channel);
+
+  let searchDescription = '';
+  if (lastPinMessage) {
+    const pinDate = lastPinMessage.createdAt.toLocaleString();
+    searchDescription = `Searching for "${keyword}" images after last /pin command (${pinDate})...`;
+  } else {
+    searchDescription = `No previous /pin command found. Searching recent "${keyword}" images...`;
   }
+
+  await interaction.editReply(searchDescription);
+
+  const messageIds = await extractImageMessageIds(channel, keyword, lastPinMessage, 10);
+
   if (messageIds.length === 0) {
-    await interaction.editReply('You must provide at least one message ID.');
+    await interaction.editReply(`No images found matching "${keyword}".`);
     return;
   }
+
+  await interaction.editReply(`Found ${messageIds.length} matching image${messageIds.length === 1 ? '' : 's'} for "${keyword}". Starting to pin...`);
+
+  // Use keyword as board name
+  const effectiveBoard = keyword;
 
   const activeAccount = await getActiveAccount(interaction.user.id);
   if (!activeAccount) {
@@ -60,10 +65,10 @@ async function execute(interaction) {
     return;
   }
 
-  const boardObj = userBoards.find(b => b.name.toLowerCase() === board.toLowerCase());
+  const boardObj = userBoards.find(b => b.name.toLowerCase() === effectiveBoard.toLowerCase());
   if (!boardObj) {
     const available = userBoards.map(b => b.name).join(', ') || 'No boards found. Run /sync first.';
-    await interaction.editReply(`Board "${board}" not found for account "${activeAccount.accountName}". Available boards: ${available}`);
+    await interaction.editReply(`Board "${effectiveBoard}" not found for account "${activeAccount.accountName}". Available boards: ${available}`);
     return;
   }
   const boardId = boardObj.id;

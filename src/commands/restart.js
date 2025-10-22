@@ -12,7 +12,8 @@ async function execute(interaction) {
     return;
   }
 
-  const reply = await interaction.reply({ content: 'Restarting bot...', fetchReply: true });
+  const response = await interaction.reply({ content: 'Restarting bot...', withResponse: true });
+  const reply = response.resource.message;
 
   const restartInfo = {
     channelId: interaction.channelId,

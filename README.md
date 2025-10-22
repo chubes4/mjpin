@@ -6,7 +6,7 @@ mjpin is a modular Node.js Discord bot designed to automate pinning Midjourney-g
 
 ## Features
 - **/pin**: Pin up to 10 images from Discord messages to a specified Pinterest board.
-- **/gather**: Search channel history for keyword-matching images after the last `/pin` command and generate a ready-to-use `/pin` command with message IDs.
+- **/gather**: Search channel history for keyword-matching images after the last `/pin` command and generate a ready-to-use `/pin` command with message IDs. Optionally accepts a `url` parameter to pre-fill the destination URL.
 - **/auth**: Authenticate your Pinterest account with the bot using a secure OAuth2 flow.
 - **/sync**: Sync your Pinterest boards to make them available for pinning.
 - **/prompt**: Generate a Midjourney prompt using OpenAI with per-guild model selection.
@@ -91,7 +91,7 @@ See `data/README.md` for complete details on:
 7. **Create images in Midjourney**
    - Paste a prompt into the Midjourney bot in the same server/channel and generate images.
 8. **Get the Discord message ID(s)**
-   - **Automated**: Use `/gather keyword` to find images matching a keyword after your last `/pin` command. The bot generates a ready-to-use `/pin` command with message IDs.
+   - **Automated**: Use `/gather keyword` (optionally with `url` parameter) to find images matching a keyword after your last `/pin` command. The bot generates a ready-to-use `/pin` command with message IDs and pre-fills the `board` parameter with your keyword.
    - **Manual**: Enable Developer Mode (User Settings → Advanced), right-click the Midjourney image message → Copy Message ID.
 9. **Pin the images**
    - Run `/pin` and provide:
