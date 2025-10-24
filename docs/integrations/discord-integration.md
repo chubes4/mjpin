@@ -21,8 +21,7 @@ Guild-specific registration via REST API.
 `Routes.applicationGuildCommands(clientId, guildId)`
 
 **Registered commands:**
-- `/pin` - Pin images to Pinterest
-- `/gather` - Search and gather image messages
+- `/pin` - Search for and pin images to Pinterest
 - `/prompt` - Generate Midjourney prompts
 - `/sync` - Sync Pinterest boards
 - `/auth` - Authenticate with Pinterest
@@ -77,7 +76,7 @@ Used for:
 **Pagination limits:**
 - Maximum 100 messages per fetch
 - Rate limited to prevent API throttling (100ms delay between batches)
-- `/gather` searches up to 1000 messages maximum
+- `/pin` searches up to 1000 messages maximum
 
 **Message content access:**
 - `message.content` - Text content

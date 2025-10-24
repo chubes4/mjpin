@@ -1,9 +1,10 @@
 /**
- * Pinterest v5 API integration with multi-account OAuth support
+ * Pinterest v5 API integration with Express OAuth callback and multi-account management
  */
 const axios = require('axios');
 const { readJsonFile, writeJsonFile } = require('../utils/jsonFileManager');
 require('dotenv').config();
+
 async function pinImageToBoard(board, imageUrl, url, accessToken) {
   if (!accessToken) {
     return { success: false, error: 'Pinterest access token not set.' };
@@ -111,6 +112,10 @@ async function saveBoardsForAccount(pinterestUserId, boardsArray) {
   await writeJsonFile('boards.json', boards);
 }
 
+/**
+ * Registers Express OAuth callback route for Pinterest authorization
+ * State parameter carries Discord user ID for account association
+ */
 function registerPinterestAuthRoute(app) {
   app.get('/pinterest/callback', async (req, res) => {
     const { code, state } = req.query;

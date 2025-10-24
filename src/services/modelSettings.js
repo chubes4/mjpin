@@ -1,5 +1,5 @@
 /**
- * Per-guild OpenAI model selection storage
+ * Per-guild OpenAI model selection with JSON file persistence
  */
 const { readJsonFile, writeJsonFile } = require('../utils/jsonFileManager');
 

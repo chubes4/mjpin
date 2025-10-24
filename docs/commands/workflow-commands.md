@@ -4,73 +4,59 @@ Core commands for pinning images and generating prompts.
 
 ## /pin
 
-Pins Discord images to Pinterest boards.
+Searches channel history for keyword-matching images and pins them to Pinterest boards.
 
 **Parameters:**
-- `board` (required): Pinterest board name
-- `message_id_1` through `message_id_10`: Discord message IDs containing images (1-10 messages)
-- `url` (required): Destination URL for all pins
+- `keyword` (required): Keyword to search for images. Also used as the Pinterest board name.
+- `url` (required): Destination URL for all pins created.
 
 **What it does:**
-- Fetches images from specified Discord message IDs
-- Pins images to specified Pinterest board using active account
-- Tracks rate limit (100 pins per 12 hours per account)
-- Returns success/failure status for each pin with current rate limit count
-
-**Image detection:**
-- Direct message attachments
-- Embedded images in message embeds
-
-**Rate limiting:**
-- Stops automatically when account reaches 100 pins in 12-hour sliding window
-- Shows remaining pin capacity after each successful pin
-- Skips remaining pins when limit reached
-
-**Prerequisites:**
-- Must authenticate via `/auth`
-- Must select active account via `/settings`
-- Must sync boards via `/sync`
-- Board name must match existing Pinterest board exactly (case-insensitive)
-
-**Error handling:**
-- Invalid board name: Lists all available boards for active account
-- Missing images: Reports which messages lack images
-- Rate limit reached: Shows current count and stops processing
-- No active account: Prompts user to authenticate and select account
-
-## /gather
-
-Searches channel history for keyword-matching images and generates ready-to-use `/pin` command.
-
-**Parameters:**
-- `keyword` (required): Search term for image messages (automatic singular/plural support)
-- `url` (optional): Pre-fill destination URL in generated command
-
-**What it does:**
-- Finds last `/pin` command execution in channel
-- Searches all messages after that point for keyword matches
-- Generates keyword variants (singular/plural forms)
-- Extracts message IDs from matching images
-- Returns ready-to-use `/pin` command with all parameters filled
+1. Searches channel history for images matching the keyword
+2. Automatically searches from after the last `/pin` command (or recent messages if no previous `/pin` command)
+3. Finds up to 10 matching images
+4. Pins each found image to the Pinterest board that matches the keyword
+5. Tracks rate limit (100 pins per 12 hours per Pinterest account)
+6. Returns success/failure status for each pin with current rate limit count
 
 **Search behavior:**
-- Searches content, embed descriptions, embed titles, and attachment names
-- Matches Midjourney upscaled images (containing "- Image #")
+- Searches message content, embed descriptions, embed titles, and attachment filenames
+- Generates keyword variants automatically (singular/plural forms)
+- Matches Midjourney upscaled images only (containing "- Image #" pattern)
 - Excludes 4-image grid previews
-- Returns up to 10 matching message IDs
 - Searches up to 1000 messages or until no more messages available
+- Keyword is used as the board name (case-insensitive board matching)
 
-**Search scope:**
-- With previous `/pin`: Searches all messages after last `/pin` command
-- Without previous `/pin`: Searches 100 most recent messages
+**Image detection:**
+- Direct message attachments (PNG, JPG, etc.)
+- Embedded images in Discord message embeds
 
-**Generated command format:**
+**Rate limiting:**
+- Enforces 100 pins per 12-hour sliding window per Pinterest account
+- Pre-flight check before starting pin batch
+- Real-time check before each individual pin
+- Stops automatically when account reaches limit
+- Shows remaining pin capacity after each successful pin (format: "X/100")
+
+**Prerequisites:**
+- Must authenticate Pinterest account via `/auth`
+- Must have an active account selected via `/settings` (if multiple accounts)
+- Must sync boards via `/sync` to cache board list
+- Board matching the keyword must exist in your Pinterest account
+
+**Example:**
 ```
-/pin board:keyword url:destination_url message_id_1:123 message_id_2:456 ...
+/pin keyword:cyberpunk url:https://example.com/cyberpunk
 ```
+This searches for "cyberpunk" images and pins them to a board named "cyberpunk" (case-insensitive).
 
-**Use case:**
-User wants to pin all "landscape" images posted after their last pinning session. Command searches channel history, finds matching images, and generates the complete `/pin` command to execute.
+**Error handling:**
+- **No active account**: Prompts user to run `/auth` and `/settings`
+- **Invalid board name**: Lists all available boards for active account
+- **No matching images**: Reports that no images were found matching the keyword
+- **Rate limit reached**: Shows current count (e.g., "100/100") and stops processing remaining pins
+- **No boards synced**: Prompts user to run `/sync`
+
+
 
 ## /prompt
 

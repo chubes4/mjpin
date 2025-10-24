@@ -36,14 +36,14 @@ async function execute(interaction) {
       allBoards = allBoards.concat(boardsResp.data.items);
       bookmark = boardsResp.data.bookmark;
     } while (bookmark);
-    
+
     const boards = allBoards.map(b => ({
       id: b.id,
       name: b.name
     }));
-    
+
     await saveBoardsForAccount(activeAccount.pinterestUserId, boards);
-    
+
     await interaction.editReply(`✅ **Sync complete!**\n\nSynced ${boards.length} boards for account "${activeAccount.accountName}".`);
   } catch (err) {
     console.error('SYNC ERROR:', err);

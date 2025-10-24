@@ -7,7 +7,7 @@ Comprehensive user documentation for the mjpin Discord bot - automated Pinterest
 mjpin automates three core workflows:
 
 1. **Pinterest Integration**: Pin Discord images to Pinterest boards with multi-account support and rate limiting
-2. **Image Gathering**: Search channel history for keyword-matching images and generate ready-to-use pin commands
+2. **Automated Image Search**: Search channel history for keyword-matching images and automatically pin them
 3. **Prompt Generation**: Generate Midjourney prompts using OpenAI with customizable system prompts
 
 ## Documentation Structure
@@ -15,8 +15,7 @@ mjpin automates three core workflows:
 ### Commands
 
 **[Workflow Commands](commands/workflow-commands.md)**
-- `/pin` - Pin Discord images to Pinterest boards
-- `/gather` - Search and gather matching image messages
+- `/pin` - Search channel history for keyword-matching images and pin to Pinterest boards
 - `/prompt` - Generate Midjourney prompts with OpenAI
 
 **[Account Management](commands/account-management.md)**
@@ -91,7 +90,7 @@ mjpin automates three core workflows:
 **For Users:**
 1. Run `/auth` to link Pinterest account
 2. Run `/sync` to cache Pinterest boards
-3. Run `/pin board:BoardName url:https://example.com message_id_1:123456` to pin images
+3. Run `/pin` with keyword and url parameters to automatically find and pin matching images
 
 **For Server Admins:**
 1. Configure OpenAI model: `/model`
@@ -111,11 +110,11 @@ mjpin automates three core workflows:
 - Separate rate limits per account
 - 100 pins per 12 hours per account
 
-**Intelligent Image Gathering:**
+**Intelligent Image Search:**
 - Automatic keyword variant generation (singular/plural)
 - Searches after last `/pin` command
 - Detects Midjourney upscaled images only
-- Generates ready-to-use commands
+- Pins up to 10 matching images per command
 
 **Customizable Prompt Generation:**
 - Per-guild OpenAI model selection
@@ -154,8 +153,8 @@ mjpin automates three core workflows:
 
 ## Component Coverage
 
-**Commands (9):**
-- pin, gather, prompt, auth, sync, settings, model, editprompt, restart
+**Commands (8):**
+- pin, prompt, auth, sync, settings, model, editprompt, restart
 
 **Services (3):**
 - pinterest.js, openai.js, modelSettings.js
@@ -174,17 +173,12 @@ mjpin automates three core workflows:
 ## User Workflows
 
 **Pinning Workflow:**
-1. Authenticate with Pinterest
-2. Sync boards
-3. Select active account (if multiple)
-4. Use `/pin` with board name, URL, and message IDs
-5. Bot pins images and tracks rate limit
-
-**Gathering Workflow:**
-1. Run `/gather` with keyword
-2. Bot searches channel history
-3. Bot generates `/pin` command with matching messages
-4. Copy and execute generated command
+1. Authenticate with Pinterest via `/auth`
+2. Sync boards via `/sync`
+3. Select active account via `/settings` (if multiple accounts)
+4. Use `/pin` with keyword (used as board name) and URL
+5. Bot searches channel history for keyword-matching images
+6. Bot pins found images and tracks rate limit
 
 **Prompt Generation Workflow:**
 1. Admin configures model via `/model`

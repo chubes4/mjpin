@@ -1,5 +1,5 @@
 /**
- * Message search utilities for gathering Discord messages with keyword filtering
+ * Keyword-based message search with automatic variant generation and Midjourney image detection
  */
 
 async function findLastPinCommand(channel, maxMessages = 500) {
@@ -20,7 +20,6 @@ async function findLastPinCommand(channel, maxMessages = 500) {
             if (messages.size === 0) break;
 
             for (const message of messages.values()) {
-                // Look for pin commands that resulted in successful pins
                 if (message.interaction?.commandName === 'pin' && message.content && message.content.includes('Pinned successfully')) {
                     return message;
                 }
@@ -67,17 +66,26 @@ async function searchMessagesAfter(channel, afterMessageId, maxMessages = 1000) 
 }
 
 function generateKeywordVariants(keyword) {
-    const variants = [keyword.toLowerCase()];
+    const variants = new Set([keyword.toLowerCase()]);
 
     if (!keyword.toLowerCase().endsWith('s')) {
-        variants.push(keyword.toLowerCase() + 's');
+        variants.add(keyword.toLowerCase() + 's');
     }
 
     if (keyword.toLowerCase().endsWith('s') && keyword.length > 1) {
-        variants.push(keyword.toLowerCase().slice(0, -1));
+        variants.add(keyword.toLowerCase().slice(0, -1));
     }
 
-    return variants;
+    const lowerKeyword = keyword.toLowerCase();
+    if (lowerKeyword.includes(' ')) {
+        variants.add(lowerKeyword.replace(/\s+/g, '-'));
+    }
+
+    if (lowerKeyword.includes('-')) {
+        variants.add(lowerKeyword.replace(/-/g, ' '));
+    }
+
+    return Array.from(variants);
 }
 
 function messageMatchesKeywords(message, keywordVariants) {
@@ -113,8 +121,11 @@ function messageMatchesKeywords(message, keywordVariants) {
     );
 }
 
+/**
+ * Detects Midjourney upscaled images only (excludes 4-image grids)
+ * Requires "- Image #" pattern in message content
+ */
 function messageHasImages(message) {
-    // Only Midjourney upscaled images (contain "- Image #"), excludes 4-image grids
     if (!message.content || !message.content.includes('- Image #')) {
         return false;
     }

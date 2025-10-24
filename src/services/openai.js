@@ -1,3 +1,6 @@
+/**
+ * OpenAI API integration with per-guild model selection and modular prompt assembly
+ */
 const axios = require('axios');
 const { readTextFile } = require('../utils/jsonFileManager');
 const { getModelForGuild } = require('./modelSettings');
@@ -7,12 +10,16 @@ require('dotenv').config();
 
 let SYSTEM_PROMPT = '';
 
+/**
+ * Loads and concatenates all .txt files from data/ directory
+ * Falls back to environment variable if no files found
+ */
 async function loadSystemPrompt() {
   try {
     const dataDir = path.join(__dirname, '../../data');
     const files = await fs.readdir(dataDir);
     const txtFiles = files.filter(file => file.endsWith('.txt'));
-    
+
     const prompts = await Promise.all(
       txtFiles.map(file => {
         const filePath = path.join(dataDir, file);
@@ -28,31 +35,26 @@ async function loadSystemPrompt() {
     if (!SYSTEM_PROMPT) {
       throw new Error('No prompt files could be read and no fallback was set.');
     }
-    
+
   } catch (err) {
     console.warn('Could not load system prompt files:', err);
     SYSTEM_PROMPT = process.env.MJPIN_OPENAI_SYSTEM_PROMPT || 'You are a helpful AI that generates Midjourney prompts.';
   }
 }
 
-// Initialize system prompt on module load
 loadSystemPrompt();
 
 const OPENAI_API_KEY = process.env.MJPIN_OPENAI_API_KEY;
 
-// Note: Discord requires a reply within 15 seconds. For long generations, use deferred replies.
-// No default model: guild must set a model via /model
 async function generatePrompt(input, guildId = null) {
   if (!OPENAI_API_KEY) {
     throw new Error('OpenAI API key not set in environment.');
   }
 
-  // Ensure system prompt is loaded
   if (!SYSTEM_PROMPT) {
     await loadSystemPrompt();
   }
 
-  // Resolve model per guild; require explicit selection
   const modelId = guildId ? await getModelForGuild(guildId) : null;
   if (!modelId) {
     throw new Error('OpenAI model is not configured for this server. Ask an admin to run /model to set it.');

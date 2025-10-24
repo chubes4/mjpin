@@ -1,6 +1,6 @@
 # Message Search System
 
-Discord channel history search with keyword filtering and image detection for `/gather` command.
+Discord channel history search with keyword filtering and image detection for `/pin` command.
 
 ## Search Functions
 
@@ -12,7 +12,7 @@ Discord channel history search with keyword filtering and image detection for `/
 - `generateKeywordVariants(keyword)` - Creates singular/plural variations
 - `messageMatchesKeywords(message, keywordVariants)` - Tests message content against keywords
 - `messageHasImages(message)` - Detects Midjourney upscaled images
-- `extractImageMessageIds(channel, keyword, afterMessage, maxResults)` - Combines all functions for `/gather`
+- `extractImageMessageIds(channel, keyword, afterMessage, maxResults)` - Combines all functions for `/pin` command
 
 ## Last Pin Command Search
 
@@ -36,7 +36,7 @@ Finds most recent `/pin` command execution in channel.
 - `null` if no `/pin` command found in range
 
 **Use case:**
-Establishes search starting point for `/gather` command.
+Establishes search starting point for `/pin` command.
 
 ## Message Pagination
 
@@ -120,12 +120,12 @@ Messages must contain:
 4-image grids excluded automatically by "- Image #" requirement.
 
 **Purpose:**
-Ensures gathered messages contain single upscaled images suitable for pinning.
+Ensures found messages contain single upscaled images suitable for pinning.
 
 ## Message ID Extraction
 
 **Purpose:**
-Main function for `/gather` command - combines all search capabilities.
+Main function for `/pin` command - combines all search capabilities.
 
 **Parameters:**
 - `channel` - Discord channel to search
@@ -156,9 +156,9 @@ Array of message IDs (strings) matching criteria.
 ## Search Scope Determination
 
 **With previous /pin command:**
-1. `/gather` finds last `/pin` execution
-2. Searches all messages after that point
-3. Useful for gathering new images since last pinning session
+1. `/pin` finds last `/pin` execution
+2. Searches messages posted after that point
+3. Useful for finding new images since last pinning session
 
 **Without previous /pin command:**
 1. Searches 100 most recent messages

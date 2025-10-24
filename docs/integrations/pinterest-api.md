@@ -24,13 +24,15 @@ Pinterest API v5 integration with multi-account OAuth2 support.
 - `user_accounts:read` - Read account information
 
 **Callback handling:**
-Built-in Express.js server handles OAuth callback at `/pinterest/callback`:
-- Validates authorization code presence
-- Exchanges code for access token via POST request
+OAuth callback handler (`src/services/pinterest-auth.php`) handles authorization code exchange:
+- Validates authorization code and state parameters
+- Exchanges code for access token via Pinterest API
 - Fetches user account information
 - Generates account name: `username (first8chars_of_pinterest_id)`
 - Stores account data with Discord user ID mapping
 - Returns success message to browser
+
+Note: An alternative Express.js callback implementation exists in `pinterest.js` (`registerPinterestAuthRoute` function) but requires an Express server to be initialized.
 
 **Token storage:**
 Access tokens stored per Pinterest account:
@@ -158,22 +160,29 @@ data/pin_counts.json - Array of timestamps per account
 **User notification:**
 Shows format: "12-hour pin count: X/100" after each pin.
 
-## Express.js Server
+## OAuth Callback Implementation
 
 **Purpose:**
-OAuth callback endpoint handling.
+Handle Pinterest OAuth2 authorization code exchange.
 
-**Routes:**
-- `GET /pinterest/callback` - OAuth2 callback handler
+**Primary Implementation:**
+PHP script (`src/services/pinterest-auth.php`) deployed to publicly accessible endpoint.
 
-**Server lifecycle:**
-- Started when bot initializes
-- Listens on configured port
-- Runs alongside Discord bot
-- No separate process management required
+**PHP Callback Requirements:**
+- PHP with curl extension
+- Publicly accessible URL matching `MJPIN_PINTEREST_REDIRECT_URI`
+- Environment variables configured for PHP execution
+- Direct file system access to project's `data/` directory
+
+**Alternative Implementation:**
+Express.js route (`registerPinterestAuthRoute` in `pinterest.js`) provides an alternative callback handler:
+- Requires Express server to be initialized and listening
+- Can be integrated into existing Express applications
+- Uses axios for HTTP requests instead of curl
+- Same functionality as PHP implementation
 
 **Configuration:**
-Environment variables:
+Environment variables (both implementations):
 - `MJPIN_PINTEREST_CLIENT_ID` - OAuth client ID
 - `MJPIN_PINTEREST_CLIENT_SECRET` - OAuth client secret
 - `MJPIN_PINTEREST_REDIRECT_URI` - Callback URL
@@ -181,4 +190,4 @@ Environment variables:
 **Security:**
 - State parameter validates Discord user ID
 - HTTPS required for production callback URL
-- Access tokens stored locally only
+- Access tokens stored locally in `data/pinterest_tokens.json` only

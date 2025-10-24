@@ -89,22 +89,22 @@ async function execute(interaction) {
 
     } catch (componentError) {
       console.error('Settings component interaction error:', componentError);
-      
+
       if (interaction.replied || interaction.deferred) {
         if (componentError.code === 'INTERACTION_COLLECTOR_ERROR' || componentError.message.includes('time')) {
           try {
-            await interaction.followUp({ 
-              content: '⏰ Account selection timed out. Use `/settings` again to manage your accounts.', 
-              ephemeral: true 
+            await interaction.followUp({
+              content: '⏰ Account selection timed out. Use `/settings` again to manage your accounts.',
+              ephemeral: true
             });
           } catch (followUpError) {
             console.error('Failed to send followUp message:', followUpError);
           }
         } else {
           try {
-            await interaction.followUp({ 
-              content: `❌ Error switching accounts: ${componentError.message}. Please try again.`, 
-              ephemeral: true 
+            await interaction.followUp({
+              content: `❌ Error switching accounts: ${componentError.message}. Please try again.`,
+              ephemeral: true
             });
           } catch (followUpError) {
             console.error('Failed to send followUp error message:', followUpError);
@@ -115,8 +115,8 @@ async function execute(interaction) {
     
   } catch (error) {
     console.error('Settings command error:', error);
-    await interaction.editReply({ 
-      content: `❌ Error loading account settings: ${error.message}`, 
+    await interaction.editReply({
+      content: `❌ Error loading account settings: ${error.message}`,
     });
   }
 }

@@ -1,3 +1,6 @@
+/**
+ * Sliding window rate limiting for Pinterest pins (100 pins per 12 hours per account)
+ */
 const { readJsonFile, writeJsonFile } = require('./jsonFileManager');
 
 const PIN_COUNTS_FILE = 'pin_counts.json';

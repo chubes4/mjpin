@@ -60,7 +60,7 @@ Required and optional environment variables for bot configuration.
   - Must match Pinterest app configuration exactly
   - Must be publicly accessible for OAuth callback
   - Must use HTTPS in production
-  - Path must be `/pinterest/callback` for bot's Express server
+  - Endpoint must handle OAuth callback (PHP script or Express.js route)
 - Usage: OAuth2 redirect after user authorization
 
 ## OpenAI Configuration Details

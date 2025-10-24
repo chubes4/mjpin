@@ -11,7 +11,7 @@ mjpin is a modular Node.js Discord bot that automates pinning Midjourney-generat
 ### Modular Command Structure
 - **Command Registration**: All commands auto-register via `src/index.js` with centralized error handling
 - **Slash Command Pattern**: Each command in `src/commands/` exports `data` (SlashCommandBuilder) and `execute` function
-- **Service Layer Separation**: External API integrations isolated in `src/services/` (pinterest.js, openai.js, modelSettings.js, pinterest-auth.php)
+- **Service Layer Separation**: External API integrations isolated in `src/services/` (pinterest.js, openai.js, modelSettings.js)
 - **Utility Layer**: Common functionality in `src/utils/` (jsonFileManager.js, pinRateLimit.js, messageSearch.js)
 
 ### Data Management Architecture
@@ -29,7 +29,7 @@ mjpin is a modular Node.js Discord bot that automates pinning Midjourney-generat
 ## Core Commands Implementation
 
 ### Workflow Commands
-- **/pin**: Pin 1-10 images to Pinterest boards - either by keyword search (automatically gathers images) or by providing Discord message IDs directly. Rate limited to 100 pins per 12 hours per Pinterest account.
+- **/pin**: Pin up to 10 images to Pinterest boards using keyword search. Automatically searches channel history for matching images and pins them. Rate limited to 100 pins per 12 hours per Pinterest account.
 - **/prompt**: Generate Midjourney prompts using OpenAI with per-guild model selection
 
 ### Account Management Commands
@@ -45,7 +45,7 @@ mjpin is a modular Node.js Discord bot that automates pinning Midjourney-generat
 ## External Integrations
 
 ### Pinterest API v5 Integration
-- **OAuth2 Flow**: Built-in Express.js server with `/pinterest/callback` endpoint handles authorization code exchange (Node.js implementation); PHP alternative available in `pinterest-auth.php`
+- **OAuth2 Flow**: OAuth callback handler (`src/services/pinterest-auth.php`) handles authorization code exchange. Note: `pinterest.js` also contains an Express.js OAuth route implementation (`registerPinterestAuthRoute`) that provides an alternative callback handler, though it requires an Express server to be initialized.
 - **Multi-Account Support**: Multiple Pinterest accounts per Discord user with account switching
 - **Board Management**: Cached board data per Pinterest account with sync capability
 - **Rate Limiting**: 100 pins per 12-hour sliding window per Pinterest account
@@ -95,9 +95,9 @@ MJPIN_OPENAI_SYSTEM_PROMPT   # Fallback prompt (optional)
 ```
 
 ### Deployment Patterns
-- **Development**: `npm start` with nodemon for hot reloading
+- **Development**: `npm start` for local development
 - **Production**: PM2 process manager with graceful shutdown handling
-- **OAuth Callback**: Requires publicly accessible endpoint for Pinterest authorization
+- **OAuth Callback**: Requires publicly accessible endpoint for Pinterest authorization (PHP callback handler or Express.js route)
 
 ### Build System
 - **No Build Process**: Pure Node.js project with no compilation or build steps required
@@ -148,7 +148,7 @@ MJPIN_OPENAI_SYSTEM_PROMPT   # Fallback prompt (optional)
 
 ### Pinterest Integration Changes
 - Pinterest API v5 endpoints and schemas
-- OAuth callback handled by Express.js server in `pinterest.js` (no PHP required)
+- OAuth callback handled by `pinterest-auth.php` (PHP) or `registerPinterestAuthRoute` (Express.js)
 - Account data stored in `pinterest_tokens.json` with multi-account support
 - Board caching in `boards.json` per Pinterest account ID
 

@@ -1,3 +1,6 @@
+/**
+ * Automated image pinning command with keyword-based search after last /pin command
+ */
 const { SlashCommandBuilder } = require('discord.js');
 const { pinImageToBoard, getActiveAccount, getBoardsForAccount } = require('../services/pinterest');
 const { extractImageMessageIds, findLastPinCommand } = require('../utils/messageSearch');
@@ -50,7 +53,6 @@ async function execute(interaction) {
 
   await interaction.editReply(`Found ${messageIds.length} matching image${messageIds.length === 1 ? '' : 's'} for "${keyword}". Starting to pin...`);
 
-  // Use keyword as board name
   const effectiveBoard = keyword;
 
   const activeAccount = await getActiveAccount(interaction.user.id);

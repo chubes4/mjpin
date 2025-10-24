@@ -24,7 +24,7 @@ Conventions & patterns
 - Always `deferReply()` for long work, then `editReply()`; use ephemeral for admin/settings.
 - Permissions: check `Administrator` or `ManageGuild` as appropriate.
 - Error handling: wrap command bodies in try/catch; send a friendly error reply; process-level handlers in `src/index.js`.
-- OpenAI: requires `MJPIN_OPENAI_API_KEY`. Current default model in `services/openai` is `gpt-5-mini` unless `MJPIN_OPENAI_MODEL` is set.
+- OpenAI: requires `MJPIN_OPENAI_API_KEY`. No default model - each Discord guild must configure via `/model` command.
 - OAuth: tokens are keyed per Discord user in `data/pinterest_tokens.json`; boards cached in `data/boards.json` per Pinterest user id.
 
 Dev workflows
@@ -44,4 +44,3 @@ const text = await generatePrompt('neon retro poster');
 
 Questions for maintainers
 - Confirm intended location and API for pin rate limiting utilities under `src/utils/`.
-- Should OpenAI model be strictly env-driven or updated at runtime via a command (and stored in `data/`)?
