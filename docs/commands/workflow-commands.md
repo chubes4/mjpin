@@ -9,6 +9,7 @@ Searches channel history for keyword-matching images and pins them to Pinterest 
 **Parameters:**
 - `keyword` (required): Keyword to search for images. Also used as the Pinterest board name.
 - `url` (required): Destination URL for all pins created.
+- `board` (optional): Specific Pinterest board name to pin to. Defaults to the keyword if not specified.
 
 **What it does:**
 1. Searches channel history for images matching the keyword
@@ -24,7 +25,7 @@ Searches channel history for keyword-matching images and pins them to Pinterest 
 - Matches Midjourney upscaled images only (containing "- Image #" pattern)
 - Excludes 4-image grid previews
 - Searches up to 1000 messages or until no more messages available
-- Keyword is used as the board name (case-insensitive board matching)
+- Board name uses the `board` parameter if specified, otherwise defaults to keyword (case-insensitive board matching)
 
 **Image detection:**
 - Direct message attachments (PNG, JPG, etc.)
@@ -48,6 +49,12 @@ Searches channel history for keyword-matching images and pins them to Pinterest 
 /pin keyword:cyberpunk url:https://example.com/cyberpunk
 ```
 This searches for "cyberpunk" images and pins them to a board named "cyberpunk" (case-insensitive).
+
+**Example with custom board:**
+```
+/pin keyword:cyberpunk url:https://example.com/cyberpunk board:neon-art
+```
+This searches for "cyberpunk" images and pins them to a board named "neon-art".
 
 **Error handling:**
 - **No active account**: Prompts user to run `/auth` and `/settings`

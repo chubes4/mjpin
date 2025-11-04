@@ -156,21 +156,23 @@ Relative to application root. PM2 starts application from correct directory.
 
 ## Build and Deployment Process
 
-**Build process:** No build script required - pure Node.js project
+**Build process:** Use `build.sh` script to create production package
 
 **Deployment preparation:**
-1. Run `npm install --production` locally
-2. Create deployment package manually (exclude .git/, .env, node_modules/)
-3. Upload source code to server
+1. Run `./build.sh` locally to create `mjpin-production.tar.gz`
+2. The script automatically excludes development files using `.buildignore`
+3. Validates essential files are present in the build
+4. Creates compressed production archive
 
 **Deployment steps:**
-1. Upload source code to server
-2. Run `npm install --production` on server
-3. Configure environment variables
-4. Restart PM2 process: `pm2 restart mjpin`
+1. Upload `mjpin-production.tar.gz` to server
+2. Extract archive: `tar -xzf mjpin-production.tar.gz`
+3. Run `npm install --production` in the extracted directory
+4. Configure environment variables
+5. Start/restart PM2 process: `pm2 restart mjpin` (or `pm2 start ecosystem.config.js`)
 
 **Critical:**
-Do not delete or overwrite data/ directory during deployment.
+Do not delete or overwrite data/ directory during deployment. The build script excludes data/ from the production package.
 
 ## Environment Variables
 

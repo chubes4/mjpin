@@ -29,7 +29,7 @@ mjpin is a modular Node.js Discord bot that automates pinning Midjourney-generat
 ## Core Commands Implementation
 
 ### Workflow Commands
-- **/pin**: Pin up to 10 images to Pinterest boards using keyword search. Automatically searches channel history for matching images and pins them. Rate limited to 100 pins per 12 hours per Pinterest account.
+- **/pin**: Pin up to 10 images to Pinterest boards using keyword search with destination URL. Automatically searches channel history after last /pin command for matching images and pins them to board matching keyword (or specified board). Rate limited to 100 pins per 12 hours per Pinterest account. Parameters: `keyword` (required), `url` (required), `board` (optional, defaults to keyword).
 - **/prompt**: Generate Midjourney prompts using OpenAI with per-guild model selection
 
 ### Account Management Commands
@@ -100,11 +100,11 @@ MJPIN_OPENAI_SYSTEM_PROMPT   # Fallback prompt (optional)
 - **OAuth Callback**: Requires publicly accessible endpoint for Pinterest authorization (PHP callback handler or Express.js route)
 
 ### Build System
-- **No Build Process**: Pure Node.js project with no compilation or build steps required
-- **Production Deployment**: Deploy source code directly with `npm install --production`
-- **File Exclusions**: Excludes `.git/`, `node_modules/`, `.env`, and development files during manual deployment
+- **Production Build Script**: `build.sh` creates optimized production package with `mjpin-production.tar.gz`
+- **Build Process**: Excludes development files using `.buildignore`, validates essential files, creates compressed archive
+- **File Exclusions**: Excludes `.git/`, `node_modules/`, `data/`, `.env`, `docs/`, `README.md`, and other development files
+- **Production Deployment**: Deploy compressed archive to server, extract, run `npm install --production`, restart PM2 process
 - **Critical Data Preservation**: Server's `data/` directory must be preserved during deployment (contains tokens, boards, pin counts, model settings)
-- **Deployment Process**: Upload source code to server, run `npm install --production`, restart PM2 process
 - **No Compilation**: Project uses pure Node.js with no build/transpilation steps
 
 ## Security Implementations

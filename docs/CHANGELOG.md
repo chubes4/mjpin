@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-11-03
+
+### Added
+- Optional `board` parameter to `/pin` command for specifying custom board names
+- Production build script (`build.sh`) with automated file exclusion and validation
+- Build ignore file (`.buildignore`) for clean production deployments
+- Pluralize library integration for improved keyword variant generation
+- Enhanced error handling and user feedback across all commands
+- Comprehensive documentation updates and alignment
+
+### Changed
+- Improved `/pin` command to support custom board names separate from search keywords
+- Enhanced build system with automated production packaging
+- Updated documentation to reflect current implementation state
+- Refined prompt system with better file discovery and ordering
+- Improved rate limiting display and user notifications
+
+### Fixed
+- Various bug fixes and stability improvements
+- Enhanced error messages and user guidance
+- Improved command validation and input handling
+
+### Technical
+- Added pluralize library for better keyword matching
+- Enhanced build process with file validation and compression
+- Improved documentation structure and accuracy
+- Updated deployment workflow with build script integration
+
 ## [1.0.0] - 2024-10-22
 
 ### Added

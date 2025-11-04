@@ -6,7 +6,7 @@ Architecture
 - Entry: `src/index.js` boots the Discord client, registers slash commands on ready, and routes interactions.
 - Commands `src/commands/`:
   - `prompt.js` → OpenAI chat completion via `services/openai`.
-  - `pin.js` → Pin images to Pinterest; enforces per-account limits.
+   - `pin.js` → Pin images to Pinterest with optional custom board names; enforces per-account limits.
   - `auth.js` → Start Pinterest OAuth (callback handled by `services/pinterest-auth.php`).
   - `sync.js` → Fetch and store boards for the active account.
   - `settings.js` → Select active Pinterest account (dropdown, ephemeral).

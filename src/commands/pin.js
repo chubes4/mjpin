@@ -1,10 +1,6 @@
-/**
- * Automated image pinning command with keyword-based search after last /pin command
- */
 const { SlashCommandBuilder } = require('discord.js');
 const { pinImageToBoard, getActiveAccount, getBoardsForAccount } = require('../services/pinterest');
 const { extractImageMessageIds, findLastPinCommand } = require('../utils/messageSearch');
-const path = require('path');
 const {
   MAX_PINS_PER_12H,
   getRecentPinCount,
@@ -16,13 +12,18 @@ const data = new SlashCommandBuilder()
   .setDescription('Pin images to Pinterest using keyword search')
   .addStringOption(option =>
     option.setName('keyword')
-      .setDescription('Keyword to search for images and use as board name')
+      .setDescription('Keyword to search for images')
       .setRequired(true)
   )
   .addStringOption(option =>
     option.setName('url')
       .setDescription('Destination URL for the pin')
       .setRequired(true)
+  )
+  .addStringOption(option =>
+    option.setName('board')
+      .setDescription('Optional board name to pin to (defaults to keyword)')
+      .setRequired(false)
   );
 
 async function execute(interaction) {
@@ -30,6 +31,7 @@ async function execute(interaction) {
 
   const keyword = interaction.options.getString('keyword');
   const url = interaction.options.getString('url');
+  const boardOverride = interaction.options.getString('board');
 
   const channel = interaction.channel;
   const lastPinMessage = await findLastPinCommand(channel);
@@ -53,7 +55,7 @@ async function execute(interaction) {
 
   await interaction.editReply(`Found ${messageIds.length} matching image${messageIds.length === 1 ? '' : 's'} for "${keyword}". Starting to pin...`);
 
-  const effectiveBoard = keyword;
+  const effectiveBoard = boardOverride || keyword;
 
   const activeAccount = await getActiveAccount(interaction.user.id);
   if (!activeAccount) {
@@ -84,7 +86,6 @@ async function execute(interaction) {
   }
 
   const results = [];
-  let pinsMade = 0;
   for (const messageId of messageIds) {
     pinCount = await getRecentPinCount(accountId, Date.now());
     if (pinCount >= MAX_PINS_PER_12H) {
@@ -107,8 +108,7 @@ async function execute(interaction) {
       if (pinResult.success) {
         await recordPin(accountId, Date.now());
         const countAfter = await getRecentPinCount(accountId, Date.now());
-        results.push(`Message ${messageId}: Pinned successfully to "${activeAccount.accountName}".\n12-hour pin count: ${countAfter}/${MAX_PINS_PER_12H}`);
-        pinsMade++;
+        results.push(`Message ${messageId}: Pinned successfully to board "${boardObj.name}" (account "${activeAccount.accountName}").\n12-hour pin count: ${countAfter}/${MAX_PINS_PER_12H}`);
       } else {
         results.push(`Message ${messageId}: Failed to pin (${pinResult.error || 'unknown error'}).`);
       }
@@ -116,6 +116,7 @@ async function execute(interaction) {
       results.push(`Message ${messageId}: Error - ${err.message}`);
     }
   }
+
   await interaction.editReply(results.join('\n'));
 }
 

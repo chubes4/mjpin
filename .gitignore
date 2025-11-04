@@ -15,4 +15,7 @@ data/*.local.txt
 data/*.txt
 
 # Ignore build directory
-build/ 
+build/
+
+# Ignore WordPress sync tracking file (contains application password)
+docs/.docs-sync.json
