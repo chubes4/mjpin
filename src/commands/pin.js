@@ -78,16 +78,11 @@ async function execute(interaction) {
   const boardId = boardObj.id;
 
   const accountId = activeAccount.pinterestUserId;
-  const now = Date.now();
-  let pinCount = await getRecentPinCount(accountId, now);
-  if (pinCount >= MAX_PINS_PER_12H) {
-    await interaction.editReply(`Pin limit reached for account "${activeAccount.accountName}" (${MAX_PINS_PER_12H} pins per 12 hours). Try again later.`);
-    return;
-  }
 
   const results = [];
   for (const messageId of messageIds) {
-    pinCount = await getRecentPinCount(accountId, Date.now());
+    const now = Date.now();
+    let pinCount = await getRecentPinCount(accountId, now);
     if (pinCount >= MAX_PINS_PER_12H) {
       results.push(`Pin limit reached (${MAX_PINS_PER_12H}/12h). Skipped remaining pins.`);
       break;
