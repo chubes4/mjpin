@@ -99,7 +99,7 @@ async function execute(interaction) {
         results.push(`Message ${messageId}: No image found.`);
         continue;
       }
-      const pinResult = await pinImageToBoard(boardId, imageUrl, url, activeAccount.accessToken);
+      const pinResult = await pinImageToBoard(boardId, imageUrl, url, activeAccount.accessToken, interaction.user.id, accountId);
       if (pinResult.success) {
         await recordPin(accountId, Date.now());
         const countAfter = await getRecentPinCount(accountId, Date.now());

@@ -47,6 +47,8 @@ if ($http_code !== 200) {
 
 $response_data = json_decode($response, true);
 $access_token = $response_data['access_token'] ?? null;
+$refresh_token = $response_data['refresh_token'] ?? null;
+$expires_in = $response_data['expires_in'] ?? null;
 
 if (!$access_token) {
     http_response_code(500);
@@ -101,6 +103,8 @@ if (!isset($tokens[$state])) {
 
 $tokens[$state]['accounts'][$pinterest_user_id] = [
     'accessToken' => $access_token,
+    'refreshToken' => $refresh_token,
+    'expiresIn' => $expires_in,
     'pinterestUserId' => $pinterest_user_id,
     'accountName' => $account_name,
     'createdAt' => date('c')

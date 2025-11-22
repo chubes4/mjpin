@@ -13,6 +13,7 @@ const settingsCommand = require('./commands/settings');
 const restartCommand = require('./commands/restart');
 const editPromptCommand = require('./commands/editprompt');
 const modelCommand = require('./commands/model');
+const { refreshAllTokens } = require('./services/pinterest');
 
 const DISCORD_TOKEN = process.env.MJPIN_DISCORD_TOKEN;
 const GUILD_ID = process.env.MJPIN_DISCORD_GUILD_ID;
@@ -80,6 +81,13 @@ client.once(Events.ClientReady, async () => {
       ] }
     );
     console.log('Registered /pin, /prompt, /sync, /auth, /settings, /restart, /editprompt, and /model commands');
+
+    // Schedule token refresh every 24 hours
+    setInterval(async () => {
+      console.log('Starting periodic token refresh...');
+      const results = await refreshAllTokens();
+      console.log('Token refresh results:', results);
+    }, 24 * 60 * 60 * 1000);
 
     const restartFilePath = path.join(__dirname, '..', 'data', 'restart_info.json');
     console.log('Checking for restart file at:', restartFilePath);
