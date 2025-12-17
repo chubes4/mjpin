@@ -29,7 +29,7 @@ Automatically excludes:
 - Omni and sprite models
 
 Includes only:
-- Models matching `^(gpt|o[34]|gpt-4|gpt-5)`
+- Models matching `^(gpt|o[34]|gpt-5(?:\.\d+)?)`
 - Chat-capable models from OpenAI API
 
 **Selection interface:**
@@ -54,7 +54,7 @@ Includes only:
 - API failure: Returns sanitized error message
 
 **Use case:**
-Server admin configures specific OpenAI model (e.g., gpt-4, o3-mini) for all prompt generation in their server. Different servers can use different models based on their needs and API access.
+Server admin configures specific OpenAI model (e.g., gpt-5, o3-mini) for all prompt generation in their server. Different servers can use different models based on their needs and API access.
 
 ## /editprompt
 

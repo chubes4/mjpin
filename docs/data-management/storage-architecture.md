@@ -164,7 +164,7 @@ Old timestamps (>12 hours) filtered out on every operation.
 - One model per guild
 
 **Model ID format:**
-OpenAI model identifier (e.g., "gpt-4", "o3-mini")
+OpenAI model identifier (e.g., "gpt-5", "o3-mini")
 
 **Operations:**
 - Get model: Returns null if guild not configured

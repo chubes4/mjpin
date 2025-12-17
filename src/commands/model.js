@@ -12,8 +12,8 @@ const data = new SlashCommandBuilder()
  * Allows: GPT-4+, o3, o4 series for chat completion
  */
 function filterChatModels(models) {
-  const deny = /(embedding|whisper|text-embedding|tts|audio|image|vision|clip|dall|ft:|omni|sprites)/i;
-  const allow = /^(gpt|o[34]|gpt-4|gpt-5)/i;
+   const deny = /(embedding|whisper|text-embedding|tts|audio|image|vision|clip|dall|ft:|omni|sprites)/i;
+   const allow = /^(gpt|o[34]|gpt-5(?:\.\d+)?)/i;
   return models
   .map(m => (typeof m === 'string' ? { id: m } : { id: String(m?.id ?? '') }))
   .filter(m => m.id && !/^gpt-3/i.test(m.id))

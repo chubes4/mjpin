@@ -20,7 +20,7 @@ Bot filters available models to chat-capable models only.
 - Omni/sprite models: `/(omni|sprites)/i`
 
 **Inclusion pattern:**
-Models must match: `/^(gpt|o[34]|gpt-4|gpt-5)/i`
+Models must match: `/^(gpt|o[34]|gpt-5(?:\.\d+)?)/i`
 
 **Selection interface:**
 - Administrator runs `/model` command
